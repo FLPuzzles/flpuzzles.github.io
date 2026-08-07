@@ -1,0 +1,1670 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#ffffff">
+  <title>Central Florida Puzzle Swap Locations</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
+  <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <style>
+    :root {
+      --ink: #222;
+      --muted: #555;
+      --panel: #fff;
+      --border: #2d2d2d;
+      --shadow: 0 8px 28px rgba(0,0,0,.22);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+      color: var(--ink);
+      background: #eef2f3;
+    }
+
+    #map {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+    }
+
+    .map-title {
+      position: fixed;
+      top: max(12px, env(safe-area-inset-top));
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 700;
+      background: rgba(242,242,242,.97);
+      border: 1.5px solid rgba(35,35,35,.8);
+      border-radius: 11px;
+      padding: 9px 13px 8px;
+      box-shadow: 0 3px 14px rgba(0,0,0,.16);
+      text-align: center;
+      width: min(300px, calc(100vw - 110px));
+      pointer-events: none;
+    }
+    .map-title strong {
+      display: block;
+      font-size: 17px;
+      line-height: 1.15;
+    }
+    .map-title span {
+      display: block;
+      margin-top: 2px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .map-actions {
+      position: fixed;
+      z-index: 750;
+      left: 50%;
+      transform: translateX(-50%);
+      bottom: max(18px, calc(env(safe-area-inset-bottom) + 10px));
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      justify-content: center;
+      width: min(680px, calc(100vw - 28px));
+    }
+
+    .locations-button,
+    .nearby-button {
+      border: 2px solid var(--border);
+      border-radius: 999px;
+      background: #fff;
+      color: #222;
+      box-shadow: var(--shadow);
+      padding: 13px 20px;
+      font-size: 17px;
+      font-weight: 800;
+      line-height: 1;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      white-space: nowrap;
+    }
+
+    .nearby-button {
+      background: #1f6fae;
+      color: #fff;
+      border-color: #184f7b;
+    }
+
+    .locations-button:active,
+    .nearby-button:active { transform: scale(.98); }
+
+    .scrim {
+      position: fixed;
+      inset: 0;
+      z-index: 800;
+      background: rgba(0,0,0,.23);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .2s ease;
+    }
+    .scrim.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .sheet {
+      position: fixed;
+      z-index: 850;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: min(82vh, 760px);
+      background: var(--panel);
+      border-radius: 18px 18px 0 0;
+      box-shadow: 0 -8px 30px rgba(0,0,0,.24);
+      transform: translateY(105%);
+      transition: transform .24s ease;
+      display: flex;
+      flex-direction: column;
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+    .sheet.open { transform: translateY(0); }
+
+    .sheet-header {
+      position: relative;
+      flex: 0 0 auto;
+      padding: 17px 56px 12px 18px;
+      border-bottom: 1px solid #ddd;
+    }
+    .grabber {
+      position: absolute;
+      top: 7px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 42px;
+      height: 5px;
+      border-radius: 999px;
+      background: #c7c7c7;
+    }
+    .sheet-header h1 {
+      margin: 6px 0 2px;
+      font-size: 21px;
+      line-height: 1.15;
+    }
+    .sheet-header p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .close-button {
+      position: absolute;
+      right: 13px;
+      top: 17px;
+      width: 36px;
+      height: 36px;
+      border: 0;
+      border-radius: 50%;
+      background: #efefef;
+      color: #222;
+      font-size: 25px;
+      line-height: 33px;
+      cursor: pointer;
+    }
+
+    .list {
+      flex: 1 1 auto;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding: 7px 13px 18px;
+    }
+    .location {
+      padding: 10px 7px 11px;
+      border-bottom: 1px solid #e7e7e7;
+      cursor: pointer;
+      -webkit-tap-highlight-color: rgba(0,0,0,.05);
+    }
+    .location:last-child { border-bottom: 0; }
+    .location-line {
+      font-size: 16px;
+      line-height: 1.25;
+    }
+    .location-line strong { font-weight: 800; }
+    .address {
+      margin-top: 2px;
+      color: #3e3e3e;
+      font-size: 15px;
+      line-height: 1.25;
+    }
+
+    .number-marker {
+      border: 2px solid rgba(0,0,0,.72);
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 850;
+      font-size: 12px;
+      color: #fff;
+      text-shadow: 0 1px 2px rgba(0,0,0,.45);
+      box-shadow: 0 1px 4px rgba(0,0,0,.35);
+    }
+
+    .region-key {
+      position: fixed;
+      z-index: 740;
+      left: 12px;
+      bottom: max(82px, calc(env(safe-area-inset-bottom) + 74px));
+      background: rgba(242,242,242,.97);
+      border: 1.5px solid rgba(35,35,35,.75);
+      border-radius: 10px;
+      box-shadow: 0 3px 14px rgba(0,0,0,.14);
+      padding: 8px 9px;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+    .key-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+      margin: 2px 0;
+    }
+    .key-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      border: 1px solid rgba(0,0,0,.55);
+      flex: 0 0 auto;
+    }
+
+    .location-line {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+    .list-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      border: 1px solid rgba(0,0,0,.45);
+      flex: 0 0 auto;
+    }
+    .leaflet-div-icon {
+      background: transparent;
+      border: none;
+    }
+
+    .popup-copy-button {
+      display: inline-block;
+      margin-top: 9px;
+      border: 1px solid #9fb8cd;
+      border-radius: 8px;
+      background: #fff;
+      color: #0f5f98;
+      padding: 7px 10px;
+      font-size: 14px;
+      font-weight: 800;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .popup-copy-button:active { transform: scale(.98); }
+    .popup-copy-button.copied {
+      color: #176b45;
+      border-color: #9bc8ae;
+      background: #f2faf5;
+    }
+
+    .popup-action-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 9px;
+    }
+    .popup-copy-button,
+    .popup-maps-button {
+      margin-top: 0;
+    }
+    .popup-maps-button {
+      display: inline-block;
+      border: 1px solid #b8c4cf;
+      border-radius: 8px;
+      background: #f6f8fa;
+      color: #33485b;
+      padding: 7px 10px;
+      font-size: 14px;
+      font-weight: 800;
+      cursor: pointer;
+      text-decoration: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .popup-maps-button:active { transform: scale(.98); }
+
+    .popup-handoff-note {
+      margin-top: 8px;
+      color: #5f6d7e;
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .nearby-action-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 9px;
+    }
+    .nearby-action-row .nearby-directions {
+      margin-top: 0;
+    }
+    .nearby-maps-button {
+      border: 1px solid #b8c4cf;
+      border-radius: 9px;
+      background: #f6f8fa;
+      color: #33485b;
+      padding: 8px 11px;
+      font-weight: 900;
+      font-size: 14px;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+    }
+    .nearby-maps-button:active { transform: scale(.98); }
+
+    .maps-handoff-note {
+      margin-top: 9px;
+      color: #5f6d7e;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+
+    @media (max-width:650px) {
+      .popup-action-row,
+      .nearby-action-row {
+        display: grid;
+        grid-template-columns: 1fr;
+      }
+      .popup-copy-button,
+      .popup-maps-button,
+      .nearby-action-row .nearby-directions,
+      .nearby-maps-button {
+        width: 100%;
+        text-align: center;
+      }
+      .popup-handoff-note { font-size: 14px; }
+    }
+
+    .leaflet-popup-content {
+      margin: 11px 13px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+      font-size: 14px;
+      line-height: 1.3;
+    }
+    .leaflet-control-attribution { font-size: 10px; }
+
+    /* On larger screens this testing file still stays map-first,
+       but gives the button a little more breathing room. */
+    @media (min-width: 700px) {
+      .map-title {
+        width: auto;
+        min-width: 280px;
+      }
+      .sheet {
+        left: auto;
+        right: 18px;
+        bottom: 18px;
+        width: 390px;
+        height: calc(100vh - 36px);
+        border-radius: 14px;
+      }
+      .locations-button {
+        left: auto;
+        right: 22px;
+        transform: none;
+      }
+      .locations-button:active { transform: scale(.98); }
+    }
+  
+    .schedule-note {
+      margin: 10px 4px;
+      padding: 11px 12px;
+      border-radius: 10px;
+      background: #eef7ff;
+      border: 1px solid #c9e3f7;
+      color: #33434f;
+      font-size: 15px;
+      line-height: 1.38;
+      display: flex;
+      align-items: flex-start;
+      gap: 9px;
+    }
+    .schedule-note .q-icon {
+      width: 22px; height: 22px; min-width: 22px;
+      border: 1.5px solid #527b9b; border-radius: 50%;
+      display: inline-flex; align-items: center; justify-content: center;
+      color: #426b8b; font-size: 13px; font-weight: 800; line-height: 1;
+      margin-top: 1px;
+    }
+    .schedule-note strong { font-weight: 800; }
+
+
+    .panel-back-row {
+      flex: 0 0 auto;
+      padding: 9px 14px 10px;
+      background: #fff;
+      border-bottom: 1px solid #e1e5ea;
+    }
+    .panel-back-button {
+      width: 100%;
+      border: 1px solid #aebdca;
+      border-radius: 10px;
+      background: #f7fafc;
+      color: #24445e;
+      padding: 10px 13px;
+      font-size: 15px;
+      font-weight: 800;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .panel-back-button:active { transform: scale(.99); }
+
+    .nearby-sheet {
+      position: fixed;
+      z-index: 860;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: min(88vh, 820px);
+      background: #f7f9fc;
+      border-radius: 18px 18px 0 0;
+      box-shadow: 0 -8px 30px rgba(0,0,0,.24);
+      transform: translateY(105%);
+      transition: transform .24s ease;
+      display: flex;
+      flex-direction: column;
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+    .nearby-sheet.open { transform: translateY(0); }
+
+    .nearby-header {
+      position: relative;
+      flex: 0 0 auto;
+      padding: 18px 56px 12px 18px;
+      border-bottom: 1px solid #dce3eb;
+      background: #fff;
+      border-radius: 18px 18px 0 0;
+    }
+    .nearby-header h1 {
+      margin: 5px 0 2px;
+      font-size: 22px;
+      line-height: 1.15;
+      color: #172033;
+    }
+    .nearby-header p {
+      margin: 0;
+      color: #5e6b7d;
+      font-size: 15px;
+    }
+    .nearby-content {
+      flex: 1 1 auto;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding: 15px 14px 28px;
+    }
+
+    .start-question {
+      font-size: 19px;
+      font-weight: 900;
+      color: #172033;
+      margin: 0 0 11px;
+    }
+    .use-location-button {
+      width: 100%;
+      border: 0;
+      border-radius: 12px;
+      padding: 14px 16px;
+      font-size: 17px;
+      font-weight: 900;
+      cursor: pointer;
+      background: #1769aa;
+      color: #fff;
+      box-shadow: 0 3px 10px rgba(23,105,170,.16);
+      -webkit-tap-highlight-color: transparent;
+    }
+    .use-location-button:hover { background:#0f5b94; }
+    .use-location-button:active { transform: scale(.99); }
+    .use-location-button:disabled { opacity:.62; cursor:wait; }
+
+    .location-help {
+      margin: 8px 1px 0;
+      font-size: 14px;
+      color: #5f6d7e;
+      line-height: 1.4;
+    }
+
+    .or-divider {
+      display:flex;
+      align-items:center;
+      gap:10px;
+      margin:16px 0 14px;
+      color:#6d7887;
+      font-size:14px;
+      font-weight:800;
+    }
+    .or-divider::before,
+    .or-divider::after {
+      content:"";
+      height:1px;
+      background:#dce3ea;
+      flex:1;
+    }
+
+    .address-option-title {
+      font-size: 17px;
+      font-weight: 900;
+      color: #172033;
+      margin: 0 0 10px;
+    }
+
+    .nearby-form-card {
+      max-width: 820px;
+      margin: 0 auto;
+      background: #fff;
+      border: 1px solid #dfe5ee;
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 4px 16px rgba(27,44,71,.05);
+    }
+    .nearby-address-grid {
+      display: grid;
+      grid-template-columns: 2fr 1.2fr .8fr;
+      gap: 10px;
+    }
+    .nearby-field label {
+      display:block;
+      font-weight: 800;
+      font-size: 14px;
+      margin-bottom: 6px;
+      color:#172033;
+    }
+    .nearby-field input {
+      width:100%;
+      min-width:0;
+      border:1px solid #bcc8d6;
+      border-radius:11px;
+      padding:13px 13px;
+      font-size:16px;
+      color:#172033;
+      background:#fff;
+      outline:none;
+    }
+    .nearby-field input:focus {
+      border-color:#1769aa;
+      box-shadow:0 0 0 3px rgba(23,105,170,.13);
+    }
+    .nearby-find {
+      width:100%;
+      margin-top:11px;
+      border:0;
+      border-radius:11px;
+      padding:13px 16px;
+      font-size:17px;
+      font-weight:850;
+      cursor:pointer;
+      background:#1769aa;
+      color:#fff;
+    }
+    .nearby-find:disabled { opacity:.6; cursor:wait; }
+    .nearby-tip {
+      margin:9px 1px 0;
+      font-size:14px;
+      color:#667487;
+      line-height:1.4;
+    }
+    .nearby-howto {
+      margin:14px 0 0;
+      padding:13px 14px;
+      background:#f3f8fc;
+      border:1px solid #d8e6f1;
+      border-radius:12px;
+      color:#405166;
+      font-size:15px;
+    }
+    .nearby-howto strong { color:#24445e; }
+    .nearby-howto ol { margin:6px 0 0; padding-left:21px; }
+    .nearby-howto li { margin:4px 0; }
+
+    .nearby-status {
+      display:none;
+      max-width:820px;
+      margin:12px auto 0;
+      padding:11px 13px;
+      border-radius:10px;
+      background:#e8f3fb;
+      color:#24445e;
+      font-size:15px;
+      font-weight:650;
+    }
+    .nearby-status.error { background:#fff0f0; color:#8a2727; }
+
+    .nearby-results {
+      display:none;
+      max-width:820px;
+      margin:14px auto 0;
+    }
+    .nearby-drive-note {
+      padding:13px 14px;
+      background:#fff9ec;
+      border:1px solid #eadfbf;
+      border-radius:12px;
+      color:#5b5137;
+      font-size:14px;
+      line-height:1.45;
+      margin-bottom:12px;
+    }
+    .nearby-drive-note strong { color:#403822; }
+    .nearby-results-head {
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      align-items:end;
+      margin-bottom:10px;
+    }
+    .nearby-results-head h2 {
+      margin:0;
+      font-size:22px;
+      color:#172033;
+    }
+    .nearby-origin {
+      margin-top:3px;
+      color:#536174;
+      font-size:14px;
+    }
+    .nearby-count {
+      color:#667487;
+      font-size:14px;
+      white-space:nowrap;
+    }
+    .nearby-cards {
+      display:grid;
+      gap:10px;
+    }
+    .nearby-card {
+      background:#fff;
+      border:1px solid #dfe5ee;
+      border-radius:14px;
+      padding:14px;
+      display:grid;
+      grid-template-columns:44px minmax(0,1fr) auto;
+      gap:12px;
+      align-items:center;
+      box-shadow:0 3px 12px rgba(27,44,71,.04);
+    }
+    .nearby-card:nth-child(1){background:#f4fbf7;border-color:#cfe6d8}
+    .nearby-card:nth-child(2){background:#f7fbff;border-color:#d7e6f3}
+    .nearby-card:nth-child(3){background:#fbf9f3;border-color:#e8e0c8}
+    .nearby-rank {
+      width:40px;height:40px;border-radius:50%;
+      display:grid;place-items:center;
+      font-size:17px;font-weight:900;
+      background:#e8f3fb;color:#0f4f82;
+    }
+    .nearby-venue-row {
+      display:flex;align-items:baseline;gap:7px;flex-wrap:wrap;
+    }
+    .nearby-mapno {
+      display:inline-block;
+      font-size:13px;font-weight:900;
+      color:#0f4f82;background:#e8f3fb;
+      border-radius:999px;padding:3px 7px;
+    }
+    .nearby-venue { font-size:16px; font-weight:900; color:#172033; }
+    .nearby-details { font-size:14px; color:#657084; margin-top:2px; }
+    .nearby-address { font-size:14px; margin-top:4px; color:#172033; line-height:1.35; }
+    .nearby-metrics {
+      text-align:right;min-width:132px;
+      background:#f6f8fb;border:1px solid #e1e6ed;
+      border-radius:11px;padding:9px 10px;
+    }
+    .nearby-label {
+      display:block;font-size:12px;font-weight:850;
+      letter-spacing:.055em;text-transform:uppercase;color:#728094;
+    }
+    .nearby-miles { font-size:19px;font-weight:950;color:#176b45;margin-top:4px; }
+    .nearby-directions {
+      display:inline-block;
+      margin-top:9px;
+      border:1px solid #9fb8cd;
+      border-radius:9px;
+      background:#fff;
+      color:#0f5f98;
+      padding:8px 11px;
+      font-weight:900;
+      font-size:14px;
+      cursor:pointer;
+    }
+    .nearby-directions:active { transform:scale(.98); }
+    .nearby-directions.copied {
+      color:#176b45;
+      border-color:#9bc8ae;
+      background:#f2faf5;
+    }
+    .nearby-controls { text-align:center; margin-top:13px; }
+    .nearby-secondary {
+      border:1px solid #b7c8d8;
+      background:#fff;color:#0f4f82;
+      border-radius:10px;padding:10px 15px;
+      font-size:15px;font-weight:800;cursor:pointer;
+    }
+    .back-to-map {
+      display:inline-block;
+      margin-left:8px;
+    }
+
+    @media (max-width:650px) {
+
+      .start-question { font-size:20px; }
+      .use-location-button { font-size:18px; padding:15px 16px; }
+      .location-help { font-size:15px; }
+      .address-option-title { font-size:18px; }
+
+      .map-actions {
+        flex-direction:column;
+        gap:8px;
+        width:min(360px, calc(100vw - 26px));
+      }
+      .locations-button,.nearby-button { width:100%; padding:12px 15px; }
+      .region-key {
+        bottom: max(126px, calc(env(safe-area-inset-bottom) + 118px));
+      }
+      .nearby-address-grid { grid-template-columns:1fr; }
+      .nearby-results-head { display:block; }
+      .nearby-count { margin-top:4px; }
+      .nearby-card {
+        grid-template-columns:42px minmax(0,1fr);
+      }
+      .nearby-metrics {
+        grid-column:1 / -1;
+        text-align:left;
+        display:block;
+        min-width:0;
+      }
+      .nearby-directions {
+        grid-column:1 / -1;
+        padding-top:7px;
+        margin-top:2px;
+        border-top:1px solid #dfe5ec;
+        font-size:14px;
+      }
+    }
+
+    @media (min-width:700px) {
+      .nearby-sheet {
+        left:auto;
+        right:18px;
+        bottom:18px;
+        width:min(760px, calc(100vw - 36px));
+        height:calc(100vh - 36px);
+        border-radius:14px;
+      }
+      .nearby-header { border-radius:14px 14px 0 0; }
+    }
+
+  </style>
+</head>
+
+<body>
+  <div id="map"></div>
+
+  <div class="map-title">
+    <strong>Central Florida Swap Locations</strong>
+    <span>Tap a number for details • View all locations or find the closest swaps</span>
+  </div>
+
+  <div class="region-key" aria-label="Map region colors">
+    <div class="key-row"><span class="key-dot" style="background:#2F6BFF"></span>Orlando / Central</div>
+    <div class="key-row"><span class="key-dot" style="background:#2E8B57"></span>North Central</div>
+    <div class="key-row"><span class="key-dot" style="background:#555555"></span>Tampa / West</div>
+    <div class="key-row"><span class="key-dot" style="background:#89CFF0"></span>Sarasota</div>
+    <div class="key-row"><span class="key-dot" style="background:#8E44AD"></span>Atlantic Coast</div>
+    <div class="key-row"><span class="key-dot" style="background:#B58A00"></span>Polk / South Central</div>
+  </div>
+
+  <div class="map-actions" aria-label="Puzzle swap tools">
+    <button id="locationsButton" class="locations-button" type="button" aria-controls="locationSheet" aria-expanded="false">
+      ☰ &nbsp;View All 36 Locations
+    </button>
+    <button id="nearbyButton" class="nearby-button" type="button" aria-controls="nearbySheet" aria-expanded="false">
+      ⌖ &nbsp;Locate Swaps Near Me
+    </button>
+  </div>
+
+  <div id="scrim" class="scrim"></div>
+
+  <section id="locationSheet" class="sheet" aria-hidden="true">
+    <div class="sheet-header">
+      <div class="grabber"></div>
+      <h1>Swap Locations</h1>
+      <p>Tap any location to show it on the map.</p>
+      <button id="closeButton" class="close-button" type="button" aria-label="Close locations">×</button>
+    </div>
+    <div class="panel-back-row">
+      <button id="listBackButton" class="panel-back-button" type="button">← Back to Map</button>
+    </div>
+    <div id="locationList" class="list"></div>
+  </section>
+
+  <section id="nearbySheet" class="nearby-sheet" aria-hidden="true">
+    <div class="nearby-header">
+      <div class="grabber"></div>
+      <h1>Find Puzzle Swaps Near Me</h1>
+      <p>Enter your address to see the closest swaps by estimated driving distance.</p>
+      <button id="nearbyCloseButton" class="close-button" type="button" aria-label="Back to map">×</button>
+    </div>
+    <div class="panel-back-row">
+      <button id="nearbyTopBackButton" class="panel-back-button" type="button">← Back to Map</button>
+    </div>
+
+    <div class="nearby-content">
+      <div class="nearby-form-card">
+        <div class="start-question">Where are you starting from?</div>
+
+        <button id="useLocationButton" class="use-location-button" type="button">
+          📍 Use My Location
+        </button>
+        <div class="location-help">
+          Your browser may ask for permission. Your location is used to estimate driving distances to nearby swaps and is not saved by this page.
+        </div>
+
+        <div class="or-divider"><span>OR</span></div>
+
+        <div class="address-option-title">Enter an address</div>
+
+        <form id="nearbyForm">
+          <div class="nearby-address-grid">
+            <div class="nearby-field">
+              <label for="nearbyStreet">Street address</label>
+              <input id="nearbyStreet" type="text" autocomplete="street-address" placeholder="123 Main St" required>
+            </div>
+            <div class="nearby-field">
+              <label for="nearbyCity">City</label>
+              <input id="nearbyCity" type="text" autocomplete="address-level2" placeholder="Orlando" required>
+            </div>
+            <div class="nearby-field">
+              <label for="nearbyZip">ZIP code</label>
+              <input id="nearbyZip" type="text" autocomplete="postal-code" inputmode="numeric"
+                     maxlength="5" pattern="[0-9]{5}" placeholder="32821" required>
+            </div>
+          </div>
+          <button id="nearbyFindButton" class="nearby-find" type="submit">Find My 6 Nearest</button>
+          <div class="nearby-tip">Florida is assumed. Your entered address is used to estimate driving distances and is not saved by this page.</div>
+          <div class="nearby-howto">
+            <strong>Easy as 1–2–3</strong>
+            <ol>
+              <li>Use your current location <strong>or</strong> enter an address.</li>
+              <li>Review your nearest swaps, ranked by estimated driving distance.</li>
+              <li>Tap <strong>Get Directions</strong> before you leave.</li>
+            </ol>
+          </div>
+        </form>
+      </div>
+
+      <div id="nearbyStatus" class="nearby-status" role="status" aria-live="polite"></div>
+
+      <section id="nearbyResults" class="nearby-results">
+        <div class="nearby-drive-note">
+          <strong>About distances:</strong> Driving distances are estimates for planning purposes only.
+          Use <strong>Copy Address</strong> or <strong>Open Address in Maps App</strong>, then verify the destination in your
+          preferred navigation app. Your maps app—not this page—handles the route, live traffic, road conditions, and travel time.
+          <br><br>
+          <strong>Plan to arrive at least 15 minutes early</strong> so you have time to sign in, place your puzzles,
+          browse the tables, and take your seat. Please avoid arriving right at the scheduled start time.
+        </div>
+
+        <div class="nearby-results-head">
+          <div>
+            <h2 id="nearbyResultsTitle">Your 6 Nearest Puzzle Swaps</h2>
+            <div id="nearbyOrigin" class="nearby-origin"></div>
+          </div>
+          <div id="nearbyCount" class="nearby-count"></div>
+        </div>
+
+        <div id="nearbyCards" class="nearby-cards"></div>
+
+        <div class="nearby-controls">
+          <button id="nearbyShowAllButton" class="nearby-secondary" type="button">Show All Locations</button>
+          <button id="nearbyBackButton" class="nearby-secondary back-to-map" type="button">Back to Map</button>
+        </div>
+      </section>
+    </div>
+  </section>
+
+  <script>
+    // REV6 MASTER SYNC: all location numbers, regions, names, addresses, and GPS coordinates come directly from the Excel master.
+    // 36 locations are present and numbered consecutively 1 through 36.
+    const locations = [{"n": 1, "region": "North Central", "city": "Gainesville", "venue": "Meizon Church", "address": "3411 NW 83rd St, Gainesville, FL 32606", "lat": 29.6847, "lng": -82.42961}, {"n": 2, "region": "North Central", "city": "Ocala", "venue": "Freedom Public Library", "address": "5870 SW 95th St, Ocala, FL 34476", "lat": 29.0839042, "lng": -82.2171417}, {"n": 3, "region": "North Central", "city": "Dunnellon", "venue": "Dunnellon Public Library", "address": "20351 Robinson Rd, Dunnellon, FL 34431", "lat": 29.0595442, "lng": -82.4575163}, {"n": 4, "region": "North Central", "city": "Belleview", "venue": "Belleview Public Library", "address": "13145 SE Highway 484, Belleview, FL 34420", "lat": 29.061757, "lng": -82.050853}, {"n": 5, "region": "North Central", "city": "Ocala", "venue": "Silver Springs Shores Community Center", "address": "590 Silver Rd, Ocala, FL 34472", "lat": 29.10647, "lng": -82.00452}, {"n": 6, "region": "North Central", "city": "Beverly Hills", "venue": "Central Ridge Library", "address": "425 W Roosevelt Blvd, Beverly Hills, FL 34465", "lat": 28.9104843139648, "lng": -82.4422760009766}, {"n": 7, "region": "North Central", "city": "DeLand", "venue": "DeLand Regional Library", "address": "130 E Howry Ave, DeLand, FL 32724", "lat": 29.02587, "lng": -81.30217}, {"n": 8, "region": "North Central", "city": "Mount Dora", "venue": "W.T. Bland Public Library", "address": "1995 N Donnelly St, Mount Dora, FL 32757", "lat": 28.813889, "lng": -81.645833}, {"n": 9, "region": "Orlando / Central", "city": "Lake Mary", "venue": "Northwest Branch Library", "address": "580 Green Way Blvd, Lake Mary, FL 32746", "lat": 28.73385048, "lng": -81.33966827}, {"n": 10, "region": "Orlando / Central", "city": "Casselberry", "venue": "Jean Rhein Central Branch Library", "address": "215 N Oxford Rd, Casselberry, FL 32707", "lat": 28.6613699615, "lng": -81.3348340988}, {"n": 11, "region": "Orlando / Central", "city": "Maitland", "venue": "Maitland Public Library", "address": "501 S Maitland Ave, Maitland, FL 32751", "lat": 28.6235985, "lng": -81.365989}, {"n": 12, "region": "Orlando / Central", "city": "Chickasaw", "venue": "Chickasaw Branch Library", "address": "870 N Chickasaw Trail, Orlando, FL 32825", "lat": 28.555217, "lng": -81.2783245}, {"n": 13, "region": "Orlando / Central", "city": "East Orlando", "venue": "Alafaya Branch Library", "address": "12000 E Colonial Dr, Orlando, FL 32826", "lat": 28.5655788, "lng": -81.2023658}, {"n": 14, "region": "Orlando / Central", "city": "Ocoee", "venue": "West Oaks Branch Library", "address": "1821 E Silver Star Rd, Ocoee, FL 34761", "lat": 28.57243, "lng": -81.51405}, {"n": 15, "region": "Orlando / Central", "city": "Winter Garden", "venue": "Winter Garden Branch Library", "address": "805 E Plant St, Winter Garden, FL 34787", "lat": 28.5674931, "lng": -81.5771392}, {"n": 16, "region": "Orlando / Central", "city": "West Orlando", "venue": "St. Luke's United Methodist Church", "address": "4851 S Apopka Vineland Rd, Orlando, FL 32819", "lat": 28.49038, "lng": -81.50708}, {"n": 17, "region": "Orlando / Central", "city": "Dr. Phillips", "venue": "Southwest Branch Library", "address": "7255 Della Dr, Orlando, FL 32819", "lat": 28.4558319, "lng": -81.4897236}, {"n": 18, "region": "Orlando / Central", "city": "South Orlando", "venue": "South Creek Branch Library", "address": "1702 Deerfield Blvd, Orlando, FL 32837", "lat": 28.3778333, "lng": -81.4011699}, {"n": 19, "region": "Orlando / Central", "city": "Clermont", "venue": "Cagan Crossings Community Library", "address": "16729 Cagan Oaks, Clermont, FL 34714", "lat": 28.35647, "lng": -81.67848}, {"n": 20, "region": "Orlando / Central", "city": "Kissimmee", "venue": "Hart Memorial Central Library", "address": "211 E Dakin Ave, Kissimmee, FL 34744", "lat": 28.2921466, "lng": -81.4037181}, {"n": 21, "region": "Atlantic Coast", "city": "Port Orange", "venue": "Port Orange Elks Lodge #2723", "address": "5207 S Ridgewood Ave, Port Orange, FL 32127", "lat": 29.12558, "lng": -80.97812}, {"n": 22, "region": "Atlantic Coast", "city": "Cocoa", "venue": "Catherine Schweinsberg Rood Central Library", "address": "308 Forrest Ave, Cocoa, FL 32922", "lat": 28.3598379, "lng": -80.7299885}, {"n": 23, "region": "Atlantic Coast", "city": "Melbourne", "venue": "Suntree-Viera Public Library", "address": "902 Jordan Blass Dr, Melbourne, FL 32940", "lat": 28.213975, "lng": -80.675757}, {"n": 24, "region": "Polk / South Central", "city": "Dundee", "venue": "Dundee Public Library", "address": "202 E Main St, Dundee, FL 33838", "lat": 28.022, "lng": -81.61926}, {"n": 25, "region": "Polk / South Central", "city": "Lake Wales", "venue": "Lake Wales Public Library", "address": "290 Cypress Garden Ln, Lake Wales, FL 33853", "lat": 27.9036972, "lng": -81.5864226}, {"n": 26, "region": "Polk / South Central", "city": "Bartow", "venue": "Bartow Public Library", "address": "2150 S Broadway Ave, Bartow, FL 33830", "lat": 27.8734451, "lng": -81.8428478}, {"n": 27, "region": "Polk / South Central", "city": "Mulberry", "venue": "Studio 37", "address": "400 N Church Ave, Mulberry, FL 33860", "lat": 27.8981202, "lng": -81.9742519}, {"n": 28, "region": "Polk / South Central", "city": "Avon Park", "venue": "American Legion Post 69", "address": "1301 W Bell St, Avon Park, FL 33825", "lat": 27.59061, "lng": -81.51895}, {"n": 29, "region": "Tampa / West", "city": "Wesley Chapel", "venue": "New River Library", "address": "34043 State Road 54, Wesley Chapel, FL 33543", "lat": 28.21931, "lng": -82.253021}, {"n": 30, "region": "Tampa / West", "city": "Tampa", "venue": "New Tampa Regional Library", "address": "10001 Cross Creek Blvd, Tampa, FL 33647", "lat": 28.141127, "lng": -82.3280492}, {"n": 31, "region": "Tampa / West", "city": "Thonotosassa", "venue": "Thonotosassa Branch Library", "address": "10715 Main St, Thonotosassa, FL 33592", "lat": 28.0576496, "lng": -82.2948337}, {"n": 32, "region": "Tampa / West", "city": "Seffner", "venue": "Seffner-Mango Branch Library", "address": "410 N Kingsway Rd, Seffner, FL 33584", "lat": 28.000932, "lng": -82.278417}, {"n": 33, "region": "Tampa / West", "city": "West Tampa", "venue": "Town 'N Country Regional Public Library", "address": "7606 Paula Dr, Suite 120, Tampa, FL 33615", "lat": 27.998803, "lng": -82.5659175}, {"n": 34, "region": "Tampa / West", "city": "Tarpon Springs", "venue": "Consignment Emporium", "address": "9 S Safford Ave, Tarpon Springs, FL 34689", "lat": 28.1458818, "lng": -82.7544905}, {"n": 35, "region": "Sarasota", "city": "North Port", "venue": "North Port Library", "address": "13800 S Tamiami Trail, North Port, FL 34287", "lat": 27.0449745, "lng": -82.2463433}, {"n": 36, "region": "Sarasota", "city": "Sarasota", "venue": "Selby Public Library", "address": "1331 1st St, Sarasota, FL 34236", "lat": 27.3376704, "lng": -82.543132}];
+
+    const map = L.map("map", {
+      zoomControl: true,
+      preferCanvas: false
+    });
+
+    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 19,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    const markers = new Map();
+    const bounds = [];
+
+    const regionColors = {
+      "Orlando / Central": "#2F6BFF",
+      "North Central": "#2E8B57",
+      "Tampa / West": "#555555",
+      "Sarasota": "#89CFF0",
+      "Atlantic Coast": "#8E44AD",
+      "Polk / South Central": "#B58A00"
+    };
+
+    function escapeHtml(value) {
+      return String(value ?? "").replace(/[&<>"']/g, c => ({
+        "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+      }[c]));
+    }
+
+    function mapsAppUrlForAddress(address) {
+      const encoded = encodeURIComponent(address);
+      const isAppleDevice = /iPhone|iPad|iPod|Macintosh/i.test(navigator.userAgent);
+
+      // This page only passes the written destination address to the user's
+      // mapping service. The maps app/service handles route selection,
+      // traffic, navigation, and travel time.
+      if (isAppleDevice) {
+        return `https://maps.apple.com/?q=${encoded}`;
+      }
+      return `https://www.google.com/maps/search/?api=1&query=${encoded}`;
+    }
+
+    function markerIcon(n, region) {
+      const color = regionColors[region] || "#555";
+      const textColor = region === "Sarasota" ? "#17324D" : "#fff";
+      return L.divIcon({
+        className: "leaflet-div-icon",
+        html: `<div class="number-marker" style="background:${color};color:${textColor}">${n}</div>`,
+        iconSize: [30, 30],
+        iconAnchor: [15, 15],
+        popupAnchor: [0, -13]
+      });
+    }
+
+    locations.forEach(loc => {
+      const popup = `
+        <div>
+          <strong>${loc.n}. ${escapeHtml(loc.city)}</strong><br>
+          <span style="font-size:13px;color:#555">${escapeHtml(loc.region)}</span><br>
+          ${escapeHtml(loc.venue)}<br>
+          <span>${escapeHtml(loc.address)}</span>
+          <div class="popup-action-row">
+            <button class="popup-copy-button"
+                    type="button"
+                    data-address="${escapeHtml(loc.address)}"
+                    aria-label="Copy address for ${escapeHtml(loc.venue)}">Copy Address</button>
+            <a class="popup-maps-button"
+               href="${mapsAppUrlForAddress(loc.address)}"
+               target="_blank"
+               rel="noopener"
+               aria-label="Open address for ${escapeHtml(loc.venue)} in your maps app">Open Address in Maps App</a>
+          </div>
+          <div class="popup-handoff-note">
+            Your maps app handles the route, traffic, and travel time.
+          </div>
+        </div>`;
+
+      const marker = L.marker([loc.lat, loc.lng], { icon: markerIcon(loc.n, loc.region) })
+        .addTo(map)
+        .bindPopup(popup, { maxWidth: 280 });
+
+      markers.set(loc.n, marker);
+      bounds.push([loc.lat, loc.lng]);
+    });
+
+
+    map.getContainer().addEventListener("click", async (event) => {
+      const button = event.target.closest(".popup-copy-button");
+      if (!button) return;
+
+      const address = button.dataset.address;
+      try {
+        await navigator.clipboard.writeText(address);
+      } catch (_) {
+        const textarea = document.createElement("textarea");
+        textarea.value = address;
+        textarea.setAttribute("readonly", "");
+        textarea.style.position = "fixed";
+        textarea.style.opacity = "0";
+        document.body.appendChild(textarea);
+        textarea.select();
+        try { document.execCommand("copy"); } finally { textarea.remove(); }
+      }
+
+      const original = button.textContent;
+      button.textContent = "✓ Address Copied";
+      button.classList.add("copied");
+      setTimeout(() => {
+        button.textContent = original;
+        button.classList.remove("copied");
+      }, 1800);
+    });
+
+    map.fitBounds(bounds, { padding: [38, 38] });
+
+    const sheet = document.getElementById("locationSheet");
+    const scrim = document.getElementById("scrim");
+    const locationsButton = document.getElementById("locationsButton");
+    const closeButton = document.getElementById("closeButton");
+    const listBackButton = document.getElementById("listBackButton");
+    const list = document.getElementById("locationList");
+
+    const topScheduleNote = document.createElement("div");
+    topScheduleNote.className = "schedule-note";
+    topScheduleNote.innerHTML = '<span class="q-icon">Q</span><span><strong>See a location but no upcoming event?</strong> No worries—some swaps can’t confirm dates far in advance. Check Facebook Events for the latest schedule.</span>';
+    list.appendChild(topScheduleNote);
+
+    locations.forEach(loc => {
+      const item = document.createElement("div");
+      item.className = "location";
+      item.setAttribute("role", "button");
+      item.setAttribute("tabindex", "0");
+      item.innerHTML = `
+        <div class="location-line">
+          <span class="list-dot" style="background:${regionColors[loc.region] || '#555'}"></span>
+          <span><strong>${loc.n}. ${loc.city}</strong> — ${loc.venue}</span>
+        </div>
+        <div class="address">${loc.address}</div>
+      `;
+
+      const goToLocation = () => {
+        closeSheet();
+        setTimeout(() => {
+          map.setView([loc.lat, loc.lng], Math.max(map.getZoom(), 12), { animate: true });
+          markers.get(loc.n).openPopup();
+        }, 250);
+      };
+
+      item.addEventListener("click", goToLocation);
+      item.addEventListener("keydown", e => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          goToLocation();
+        }
+      });
+      list.appendChild(item);
+    });
+
+
+    const bottomScheduleNote = document.createElement("div");
+    bottomScheduleNote.className = "schedule-note";
+    bottomScheduleNote.innerHTML = '<span class="q-icon">Q</span><span><strong>See a location but no upcoming event?</strong> No worries—some swaps can’t confirm dates far in advance. Check Facebook Events for the latest schedule.</span>';
+    list.appendChild(bottomScheduleNote);
+
+    function openSheet() {
+      if (typeof nearbySheet !== "undefined" && nearbySheet.classList.contains("open")) {
+        closeNearbySheet();
+      }
+      sheet.classList.add("open");
+      scrim.classList.add("open");
+      sheet.setAttribute("aria-hidden", "false");
+      locationsButton.setAttribute("aria-expanded", "true");
+    }
+
+    function closeSheet() {
+      sheet.classList.remove("open");
+      scrim.classList.remove("open");
+      sheet.setAttribute("aria-hidden", "true");
+      locationsButton.setAttribute("aria-expanded", "false");
+      setTimeout(() => map.invalidateSize(), 260);
+    }
+
+    locationsButton.addEventListener("click", openSheet);
+    closeButton.addEventListener("click", closeSheet);
+    listBackButton.addEventListener("click", closeSheet);
+    scrim.addEventListener("click", closeSheet);
+
+    document.addEventListener("keydown", e => {
+      if (e.key === "Escape") closeSheet();
+    });
+
+    window.addEventListener("resize", () => map.invalidateSize());
+
+    // ----- Locate Swaps Near Me -----
+    const NEARBY_LOCATIONS = locations.map(loc => ({
+      number: loc.n,
+      region: loc.region,
+      area: loc.city,
+      venue: loc.venue,
+      address: loc.address,
+      // Map pin coordinates remain the hand-picked Excel coordinates.
+      mapLat: loc.lat,
+      mapLon: loc.lng
+    }));
+
+    const nearbySheet = document.getElementById("nearbySheet");
+    const nearbyButton = document.getElementById("nearbyButton");
+    const nearbyCloseButton = document.getElementById("nearbyCloseButton");
+    const nearbyBackButton = document.getElementById("nearbyBackButton");
+    const nearbyTopBackButton = document.getElementById("nearbyTopBackButton");
+    const nearbyForm = document.getElementById("nearbyForm");
+    const nearbyStreet = document.getElementById("nearbyStreet");
+    const nearbyCity = document.getElementById("nearbyCity");
+    const nearbyZip = document.getElementById("nearbyZip");
+    const nearbyFindButton = document.getElementById("nearbyFindButton");
+    const useLocationButton = document.getElementById("useLocationButton");
+    const nearbyStatus = document.getElementById("nearbyStatus");
+    const nearbyResults = document.getElementById("nearbyResults");
+    const nearbyResultsTitle = document.getElementById("nearbyResultsTitle");
+    const nearbyOrigin = document.getElementById("nearbyOrigin");
+    const nearbyCount = document.getElementById("nearbyCount");
+    const nearbyCards = document.getElementById("nearbyCards");
+    const nearbyShowAllButton = document.getElementById("nearbyShowAllButton");
+
+    let nearbyRanked = [];
+    let nearbyShowingAll = false;
+    let nearbyOriginCoords = null;
+    let routingLocationsCache = null;
+
+    function openNearbySheet() {
+      closeSheet();
+      nearbySheet.classList.add("open");
+      scrim.classList.add("open");
+      nearbySheet.setAttribute("aria-hidden", "false");
+      nearbyButton.setAttribute("aria-expanded", "true");
+    }
+
+    function closeNearbySheet() {
+      nearbySheet.classList.remove("open");
+      scrim.classList.remove("open");
+      nearbySheet.setAttribute("aria-hidden", "true");
+      nearbyButton.setAttribute("aria-expanded", "false");
+      setTimeout(() => map.invalidateSize(), 260);
+    }
+
+    function setNearbyStatus(message, isError=false) {
+      nearbyStatus.textContent = message;
+      nearbyStatus.className = "nearby-status" + (isError ? " error" : "");
+      nearbyStatus.style.display = message ? "block" : "none";
+    }
+
+    function setNearbyBusy(busy) {
+      nearbyFindButton.disabled = busy;
+      nearbyStreet.disabled = busy;
+      nearbyCity.disabled = busy;
+      nearbyZip.disabled = busy;
+      nearbyFindButton.textContent = busy ? "Finding swaps..." : "Find My 6 Nearest";
+    }
+
+    function nearbyEscape(value) {
+      return String(value ?? "").replace(/[&<>"']/g, c => ({
+        "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+      }[c]));
+    }
+
+    function destinationCacheKey(loc) {
+      return "puzzleSwapDestinationGeoV1:" + loc.number + ":" + loc.address.toLowerCase();
+    }
+
+    function stripUnitForGeocoding(address) {
+      // Suite/unit numbers can reduce geocoder match quality. Keep the full address
+      // for display and Get Directions; remove only unit/suite text for coordinate lookup.
+      return address
+        .replace(/,\s*(suite|ste\.?|unit|#)\s*[a-z0-9-]+(?=,|$)/i, "")
+        .replace(/\s{2,}/g, " ")
+        .trim();
+    }
+
+    function parseFloridaAddress(fullAddress) {
+      const cleaned = stripUnitForGeocoding(fullAddress);
+      const match = cleaned.match(/^(.*?),\s*([^,]+),\s*FL\s+(\d{5})(?:-\d{4})?$/i);
+      if (!match) return null;
+      return {
+        street: match[1].trim(),
+        city: match[2].trim(),
+        zip: match[3]
+      };
+    }
+
+    function fetchWithTimeout(url, options={}, timeoutMs=12000) {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), timeoutMs);
+      return fetch(url, {...options, signal: controller.signal}).finally(() => clearTimeout(timer));
+    }
+
+    function censusGeocode(parts) {
+      return new Promise((resolve) => {
+        const callbackName = "censusGeo_" + Date.now() + "_" + Math.random().toString(36).slice(2);
+        const script = document.createElement("script");
+        let settled = false;
+
+        const cleanup = () => {
+          if (script.parentNode) script.parentNode.removeChild(script);
+          try { delete window[callbackName]; } catch (_) { window[callbackName] = undefined; }
+        };
+
+        const timer = setTimeout(() => {
+          if (settled) return;
+          settled = true;
+          cleanup();
+          resolve(null);
+        }, 12000);
+
+        window[callbackName] = (data) => {
+          if (settled) return;
+          settled = true;
+          clearTimeout(timer);
+          cleanup();
+
+          try {
+            const matches = data?.result?.addressMatches || [];
+            if (!matches.length) return resolve(null);
+            const m = matches[0];
+            const x = Number(m.coordinates?.x);
+            const y = Number(m.coordinates?.y);
+            if (!Number.isFinite(x) || !Number.isFinite(y)) return resolve(null);
+
+            resolve({
+              lat:y,
+              lon:x,
+              displayName:m.matchedAddress || `${parts.street}, ${parts.city}, FL ${parts.zip}`
+            });
+          } catch (_) {
+            resolve(null);
+          }
+        };
+
+        const address = `${parts.street}, ${parts.city}, FL ${parts.zip}`;
+        const url = new URL("https://geocoding.geo.census.gov/geocoder/locations/onelineaddress");
+        url.searchParams.set("address", address);
+        url.searchParams.set("benchmark", "Public_AR_Current");
+        url.searchParams.set("format", "jsonp");
+        url.searchParams.set("callback", callbackName);
+
+        script.src = url.toString();
+        script.async = true;
+        script.onerror = () => {
+          if (settled) return;
+          settled = true;
+          clearTimeout(timer);
+          cleanup();
+          resolve(null);
+        };
+        document.head.appendChild(script);
+      });
+    }
+
+    async function osmExactGeocode(parts) {
+      const attempts = [
+        `${parts.street}, ${parts.city}, FL ${parts.zip}, USA`,
+        `${parts.street}, ${parts.city}, Florida, USA`
+      ];
+
+      for (const q of attempts) {
+        const url = new URL("https://nominatim.openstreetmap.org/search");
+        url.searchParams.set("format","jsonv2");
+        url.searchParams.set("q",q);
+        url.searchParams.set("countrycodes","us");
+        url.searchParams.set("limit","1");
+        url.searchParams.set("addressdetails","1");
+
+        try {
+          const response = await fetchWithTimeout(url.toString(), {headers:{"Accept":"application/json"}}, 12000);
+          if (!response.ok) continue;
+          const matches = await response.json();
+          if (!matches.length) continue;
+          const lat = Number(matches[0].lat);
+          const lon = Number(matches[0].lon);
+          if (!Number.isFinite(lat) || !Number.isFinite(lon)) continue;
+          return {lat, lon, displayName:matches[0].display_name || `${parts.street}, ${parts.city}, FL ${parts.zip}`};
+        } catch (_) {}
+      }
+      return null;
+    }
+
+    async function geocodeNearby(parts) {
+      // User-entered residential addresses are not stored by this page.
+      // Use the U.S. Census geocoder only for the user's starting address.
+      const result = await censusGeocode(parts);
+
+      if (!result) {
+        throw new Error(
+          "I could not pinpoint that street address accurately enough. " +
+          "Please double-check the street, city, and ZIP code."
+        );
+      }
+      return result;
+    }
+
+    async function geocodeDestination(loc) {
+      const key = destinationCacheKey(loc);
+      try {
+        const cached = localStorage.getItem(key);
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (Number.isFinite(parsed.routeLat) && Number.isFinite(parsed.routeLon)) {
+            return {...loc, ...parsed};
+          }
+        }
+      } catch (_) {}
+
+      const parts = parseFloridaAddress(loc.address);
+      if (!parts) return {...loc, routingError: "Address format could not be parsed."};
+
+      const result = await censusGeocode(parts);
+
+      if (!result || !Number.isFinite(result.lat) || !Number.isFinite(result.lon)) {
+        return {...loc, routingNeedsFallback: true};
+      }
+
+      const routing = {routeLat: result.lat, routeLon: result.lon};
+      try { localStorage.setItem(key, JSON.stringify(routing)); } catch (_) {}
+      return {...loc, ...routing};
+    }
+
+    function sleep(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    async function prepareRoutingLocations() {
+      if (routingLocationsCache) return routingLocationsCache;
+
+      // Geocode destinations only when the near-me tool is actually used.
+      // Cache each result locally so repeat searches on the same device do not
+      // geocode the 36 swap addresses again.
+      const results = new Array(NEARBY_LOCATIONS.length);
+      let nextIndex = 0;
+      const workerCount = 4;
+
+      async function worker() {
+        while (true) {
+          const i = nextIndex++;
+          if (i >= NEARBY_LOCATIONS.length) return;
+          results[i] = await geocodeDestination(NEARBY_LOCATIONS[i]);
+        }
+      }
+
+      await Promise.all(Array.from({length: workerCount}, worker));
+
+      // Public OSM Nominatim fallback: only for public venue addresses that
+      // Census could not match. Run one at a time and no faster than 1/sec.
+      // This avoids sending user residential addresses to Nominatim.
+      const fallbackIndexes = results
+        .map((loc, i) => loc && loc.routingNeedsFallback ? i : -1)
+        .filter(i => i >= 0);
+
+      for (let n = 0; n < fallbackIndexes.length; n++) {
+        const i = fallbackIndexes[n];
+        const loc = results[i];
+        const parts = parseFloridaAddress(loc.address);
+
+        if (parts) {
+          const fallback = await osmExactGeocode(parts);
+          if (fallback && Number.isFinite(fallback.lat) && Number.isFinite(fallback.lon)) {
+            const routing = {routeLat: fallback.lat, routeLon: fallback.lon};
+            try { localStorage.setItem(destinationCacheKey(loc), JSON.stringify(routing)); } catch (_) {}
+            results[i] = {...loc, ...routing, routingNeedsFallback: false};
+          } else {
+            results[i] = {...loc, routingError: "Address could not be geocoded.", routingNeedsFallback: false};
+          }
+        } else {
+          results[i] = {...loc, routingError: "Address format could not be parsed.", routingNeedsFallback: false};
+        }
+
+        if (n < fallbackIndexes.length - 1) await sleep(1100);
+      }
+
+      routingLocationsCache = results;
+      return results;
+    }
+
+    async function getNearbyDriveMatrix(origin) {
+      const allRoutingLocations = await prepareRoutingLocations();
+      const routable = allRoutingLocations.filter(
+        loc => Number.isFinite(loc.routeLat) && Number.isFinite(loc.routeLon)
+      );
+
+      if (routable.length < 6) {
+        throw new Error("Too few swap addresses could be located accurately enough to calculate nearby results.");
+      }
+
+      const coords = [
+        `${origin.lon},${origin.lat}`,
+        ...routable.map(x => `${x.routeLon},${x.routeLat}`)
+      ].join(";");
+
+      const destinations = routable.map((_,i) => i+1).join(";");
+      const url = `https://router.project-osrm.org/table/v1/driving/${coords}` +
+                  `?sources=0&destinations=${destinations}&annotations=distance`;
+
+      const response = await fetchWithTimeout(url, {}, 15000);
+      if (!response.ok) throw new Error("Driving-distance calculation is temporarily unavailable. Please try again.");
+      const data = await response.json();
+      if (data.code !== "Ok" || !data.distances) {
+        throw new Error("Driving-distance calculation is temporarily unavailable. Please try again.");
+      }
+
+      const ranked = routable.map((loc,i) => {
+        const meters = data.distances[0][i];
+        return {
+          ...loc,
+          meters,
+          miles: meters == null ? null : meters/1609.344
+        };
+      }).filter(x => x.meters != null)
+        .sort((a,b) => a.meters - b.meters);
+
+      const omitted = allRoutingLocations.length - routable.length;
+      return {ranked, omitted};
+    }
+
+    function nearbyMiles(miles) {
+      return miles < 10 ? miles.toFixed(1) + " mi" : Math.round(miles) + " mi";
+    }
+
+    async function copySwapAddress(address, button) {
+      try {
+        await navigator.clipboard.writeText(address);
+        const original = button.textContent;
+        button.textContent = "✓ Address Copied";
+        button.classList.add("copied");
+        setTimeout(() => {
+          button.textContent = original;
+          button.classList.remove("copied");
+        }, 1800);
+      } catch (_) {
+        // Fallback for browsers where Clipboard API is unavailable.
+        const textarea = document.createElement("textarea");
+        textarea.value = address;
+        textarea.setAttribute("readonly", "");
+        textarea.style.position = "fixed";
+        textarea.style.opacity = "0";
+        document.body.appendChild(textarea);
+        textarea.select();
+        try {
+          document.execCommand("copy");
+          const original = button.textContent;
+          button.textContent = "✓ Address Copied";
+          button.classList.add("copied");
+          setTimeout(() => {
+            button.textContent = original;
+            button.classList.remove("copied");
+          }, 1800);
+        } finally {
+          textarea.remove();
+        }
+      }
+    }
+
+    function renderNearbyResults() {
+      const visible = nearbyShowingAll ? nearbyRanked : nearbyRanked.slice(0,6);
+      nearbyResultsTitle.textContent = nearbyShowingAll ? "All Puzzle Swaps by Driving Distance" : "Your 6 Nearest Puzzle Swaps";
+      nearbyCount.textContent = nearbyShowingAll ? `${nearbyRanked.length} locations ranked` : `Top 6 of ${nearbyRanked.length}`;
+      nearbyShowAllButton.textContent = nearbyShowingAll ? "Show Only My 6 Nearest" : "Show All Locations";
+
+      nearbyCards.innerHTML = visible.map((loc,index) => `
+        <article class="nearby-card">
+          <div class="nearby-rank">${index+1}</div>
+          <div>
+            <div class="nearby-venue-row">
+              <span class="nearby-mapno">MAP #${loc.number}</span>
+              <span class="nearby-venue">${nearbyEscape(loc.venue)}</span>
+            </div>
+            <div class="nearby-details">${nearbyEscape(loc.area)} · ${nearbyEscape(loc.region)}</div>
+            <div class="nearby-address">${nearbyEscape(loc.address)}</div>
+          </div>
+          <div class="nearby-metrics">
+            <div>
+              <span class="nearby-label">Estimated driving distance</span>
+              <div class="nearby-miles">${nearbyMiles(loc.miles)}</div>
+            </div>
+            <div class="nearby-action-row">
+              <button class="nearby-directions copy-address-button" type="button"
+                      data-address="${nearbyEscape(loc.address)}"
+                      aria-label="Copy address for ${nearbyEscape(loc.venue)}">Copy Address</button>
+              <a class="nearby-maps-button"
+                 href="${mapsAppUrlForAddress(loc.address)}"
+                 target="_blank"
+                 rel="noopener"
+                 aria-label="Open address for ${nearbyEscape(loc.venue)} in your maps app">Open Address in Maps App</a>
+            </div>
+            <div class="maps-handoff-note">
+              Your maps app handles the route, traffic, and travel time.
+            </div>
+          </div>
+        </article>
+      `).join("");
+
+      nearbyCards.querySelectorAll(".copy-address-button").forEach(button => {
+        button.addEventListener("click", () => copySwapAddress(button.dataset.address, button));
+      });
+
+      nearbyResults.style.display = "block";
+    }
+
+    async function calculateNearbyFromOrigin(origin, displayLabel) {
+      nearbyOriginCoords = origin;
+
+      setNearbyStatus("Preparing swap addresses and calculating driving distances...");
+      const matrixResult = await getNearbyDriveMatrix(origin);
+      nearbyRanked = matrixResult.ranked;
+
+      if (!nearbyRanked.length) {
+        throw new Error("No drivable puzzle-swap locations were returned.");
+      }
+
+      nearbyShowingAll = false;
+      nearbyOrigin.textContent = `Starting from: ${displayLabel}`;
+      renderNearbyResults();
+
+      if (matrixResult.omitted > 0) {
+        setNearbyStatus(
+          `${matrixResult.omitted} swap location${matrixResult.omitted === 1 ? "" : "s"} could not be pinpointed accurately enough for routing and ${matrixResult.omitted === 1 ? "was" : "were"} left out of this ranking.`,
+          true
+        );
+      } else {
+        setNearbyStatus("");
+      }
+
+      nearbyResults.scrollIntoView({behavior:"smooth", block:"start"});
+    }
+
+    function getBrowserLocation() {
+      return new Promise((resolve, reject) => {
+        if (!navigator.geolocation) {
+          reject(new Error("Location services are not available in this browser. Please enter an address instead."));
+          return;
+        }
+
+        navigator.geolocation.getCurrentPosition(
+          position => {
+            const lat = Number(position.coords.latitude);
+            const lon = Number(position.coords.longitude);
+            const accuracy = Number(position.coords.accuracy);
+
+            if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
+              reject(new Error("Your browser did not return a usable location. Please enter an address instead."));
+              return;
+            }
+
+            // Very coarse network-based locations can rank swaps incorrectly.
+            // If accuracy is worse than 5 km, require the address path instead.
+            if (Number.isFinite(accuracy) && accuracy > 5000) {
+              reject(new Error("Your device could only provide a very approximate location. Please enter your address for more accurate results."));
+              return;
+            }
+
+            resolve({lat, lon, accuracy});
+          },
+          error => {
+            let message = "I couldn’t use your current location. Please enter an address instead.";
+            if (error && error.code === 1) {
+              message = "Location permission was not allowed. You can still enter an address below.";
+            } else if (error && error.code === 2) {
+              message = "Your device could not determine its location. Please enter an address below.";
+            } else if (error && error.code === 3) {
+              message = "Location lookup took too long. Please try again or enter an address below.";
+            }
+            reject(new Error(message));
+          },
+          {
+            enableHighAccuracy: true,
+            timeout: 12000,
+            maximumAge: 300000
+          }
+        );
+      });
+    }
+
+    useLocationButton.addEventListener("click", async () => {
+      useLocationButton.disabled = true;
+      nearbyFindButton.disabled = true;
+      useLocationButton.textContent = "Finding My Location...";
+      nearbyResults.style.display = "none";
+      setNearbyStatus("Finding your current location...");
+
+      try {
+        const loc = await getBrowserLocation();
+
+        const accuracyText = Number.isFinite(loc.accuracy) && loc.accuracy > 500
+          ? " (approximate)"
+          : "";
+
+        await calculateNearbyFromOrigin(
+          {lat:loc.lat, lon:loc.lon},
+          `Current location${accuracyText}`
+        );
+      } catch (err) {
+        setNearbyStatus(err.message || "I couldn’t use your current location. Please enter an address instead.", true);
+      } finally {
+        useLocationButton.disabled = false;
+        nearbyFindButton.disabled = false;
+        useLocationButton.textContent = "📍 Use My Location";
+      }
+    });
+
+    nearbyForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      const street = nearbyStreet.value.trim();
+      const city = nearbyCity.value.trim();
+      const zip = nearbyZip.value.trim();
+
+      if (!street || !city || !zip) return;
+      if (!/^\d{5}$/.test(zip)) {
+        setNearbyStatus("Please enter a valid 5-digit ZIP code.", true);
+        nearbyZip.focus();
+        return;
+      }
+
+      const parts = {street,city,zip};
+      const enteredAddress = `${street}, ${city}, FL ${zip}`;
+
+      setNearbyBusy(true);
+      useLocationButton.disabled = true;
+      setNearbyStatus("Finding your Florida address...");
+      nearbyResults.style.display = "none";
+
+      try {
+        const origin = await geocodeNearby(parts);
+        await calculateNearbyFromOrigin(origin, enteredAddress);
+      } catch (err) {
+        const msg = err && err.name === "AbortError"
+          ? "The map service took too long to respond. Please try again."
+          : (err.message || "Something went wrong. Please try again.");
+        setNearbyStatus(msg,true);
+      } finally {
+        setNearbyBusy(false);
+        useLocationButton.disabled = false;
+      }
+    });
+
+    nearbyShowAllButton.addEventListener("click", () => {
+      nearbyShowingAll = !nearbyShowingAll;
+      renderNearbyResults();
+      nearbyResults.scrollIntoView({behavior:"smooth",block:"start"});
+    });
+
+    nearbyButton.addEventListener("click", openNearbySheet);
+    nearbyCloseButton.addEventListener("click", closeNearbySheet);
+    nearbyBackButton.addEventListener("click", closeNearbySheet);
+    nearbyTopBackButton.addEventListener("click", closeNearbySheet);
+
+    // Scrim and Escape close whichever panel is open.
+    const originalScrimHandler = () => {
+      if (nearbySheet.classList.contains("open")) closeNearbySheet();
+    };
+    scrim.addEventListener("click", originalScrimHandler);
+
+    document.addEventListener("keydown", e => {
+      if (e.key === "Escape" && nearbySheet.classList.contains("open")) closeNearbySheet();
+    });
+
+  </script>
+</body>
+</html>
