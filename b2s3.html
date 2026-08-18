@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Central Florida Puzzlers - Contest Winners Wheel</title>
+<style>
+  :root{
+    --navy:#082442;
+    --navy2:#102f53;
+    --chalk:#123f3d;
+    --chalk2:#0c3432;
+    --paper:#fffaf0;
+    --cream:#f6eed8;
+    --ink:#14283a;
+    --muted:#63788a;
+    --wood:#b8682c;
+    --wood-dark:#7b3f18;
+    --yellow:#f6d34a;
+    --orange:#f28c22;
+    --pink:#e87da3;
+    --teal:#4fb6a7;
+    --green:#95c85f;
+    --blue:#5595cc;
+    --purple:#b17abf;
+    --red:#db4944;
+    --line:#d6dbe0;
+    --shadow:0 14px 34px rgba(0,0,0,.28);
+  }
+
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    min-height:100vh;
+    font-family:"Trebuchet MS",ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    color:var(--ink);
+    background:
+      radial-gradient(circle at 4% 9%, rgba(246,211,74,.14), transparent 12%),
+      radial-gradient(circle at 93% 15%, rgba(232,125,163,.14), transparent 13%),
+      radial-gradient(circle at 8% 88%, rgba(79,182,167,.14), transparent 14%),
+      linear-gradient(180deg,var(--navy) 0%,#061b33 100%);
+    background-attachment:fixed;
+    overflow-x:hidden;
+  }
+
+  body::before,
+  body::after{
+    content:"✦   ✎   ☆   ⊕   ♪   △   ✧   123   ABC   ✦   ⌁   ☆";
+    position:fixed;
+    left:0;
+    width:100%;
+    color:rgba(255,255,255,.08);
+    font-weight:900;
+    letter-spacing:2.1rem;
+    white-space:nowrap;
+    pointer-events:none;
+    z-index:0;
+  }
+  body::before{top:32px;transform:rotate(-2deg)}
+  body::after{bottom:38px;transform:rotate(2deg)}
+
+  .wrap{
+    width:min(1240px,96vw);
+    margin:18px auto;
+    padding:18px;
+    position:relative;
+    z-index:1;
+  }
+
+  header{
+    position:relative;
+    text-align:center;
+    margin:0 auto 18px;
+    padding:20px 26px 22px;
+    background:
+      radial-gradient(circle at 18% 22%,rgba(255,255,255,.035),transparent 20%),
+      radial-gradient(circle at 82% 70%,rgba(255,255,255,.025),transparent 18%),
+      linear-gradient(180deg,var(--chalk),var(--chalk2));
+    border:9px solid var(--wood);
+    border-bottom-color:#96501f;
+    border-radius:18px 18px 9px 9px;
+    box-shadow:
+      inset 0 0 0 3px rgba(255,255,255,.05),
+      inset 0 0 20px rgba(0,0,0,.16),
+      0 8px 0 var(--wood-dark),
+      var(--shadow);
+    color:#fff;
+  }
+
+  .apple,.pencil{
+    position:absolute;
+    top:-12px;
+    font-size:clamp(2.8rem,5vw,4.6rem);
+    filter:drop-shadow(0 4px 2px rgba(0,0,0,.25));
+  }
+  .apple{left:18px;transform:rotate(-8deg)}
+  .pencil{right:20px;transform:rotate(18deg)}
+
+  .cfp{
+    display:block;
+    font-size:clamp(1.1rem,2.2vw,1.8rem);
+    letter-spacing:.08em;
+    font-weight:1000;
+    text-transform:uppercase;
+    margin-bottom:1px;
+  }
+  h1{
+    margin:0;
+    font-family:"Arial Rounded MT Bold","Trebuchet MS",sans-serif;
+    font-size:clamp(2.1rem,5.5vw,4.6rem);
+    line-height:.98;
+    letter-spacing:.02em;
+    text-transform:uppercase;
+    text-shadow:0 3px 0 rgba(0,0,0,.18);
+  }
+  h1 .rainbow span:nth-child(1){color:#ef7f25}
+  h1 .rainbow span:nth-child(2){color:#9bc85f}
+  h1 .rainbow span:nth-child(3){color:#4ba6cf}
+  h1 .rainbow span:nth-child(4){color:#de4c45}
+  h1 .rainbow span:nth-child(5){color:#b079b7}
+  h1 .rainbow span:nth-child(6){color:#f1a531}
+  h1 .rainbow span:nth-child(7){color:#51b8a9}
+  h1 .rainbow span:nth-child(8){color:#ef8fa8}
+  .subhead{
+    margin-top:8px;
+    font-size:clamp(1.15rem,2.5vw,1.8rem);
+    font-weight:1000;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    color:#fff;
+  }
+
+  .grid{
+    display:grid;
+    grid-template-columns:320px minmax(0,1fr) 270px;
+    gap:18px;
+    align-items:start;
+  }
+
+  .panel{
+    background:var(--paper);
+    border:5px solid #fff;
+    outline:3px solid rgba(18,48,74,.20);
+    border-radius:22px;
+    box-shadow:var(--shadow);
+  }
+
+  .controls{padding:17px}
+  .controls h2,.winners h2{
+    margin:0 0 10px;
+    font-family:"Arial Rounded MT Bold","Trebuchet MS",sans-serif;
+    font-size:1.12rem;
+    color:var(--navy2);
+    text-transform:uppercase;
+    letter-spacing:.035em;
+  }
+
+  label{display:block;font-weight:900;margin-bottom:7px;color:#304c63}
+  textarea{
+    width:100%;
+    height:270px;
+    resize:vertical;
+    border:3px solid #bfcbd4;
+    border-radius:13px;
+    background:
+      linear-gradient(90deg,transparent 0 29px,rgba(219,73,68,.18) 29px 31px,transparent 31px),
+      repeating-linear-gradient(0deg,#fffdf4 0 27px,#dce7ed 27px 28px);
+    padding:8px 12px 8px 40px;
+    font:800 .98rem/28px "Trebuchet MS",sans-serif;
+    color:#253d50;
+    outline:none;
+  }
+  textarea:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(85,149,204,.18)}
+
+  .meta{display:flex;justify-content:space-between;color:var(--muted);font-size:.85rem;margin:8px 2px 8px;font-weight:800}
+  .validation-message{min-height:20px;margin:0 2px 10px;font-size:.82rem;font-weight:900;color:#a33a39}
+  .validation-message.ok{color:#3d765d}
+  textarea[readonly]{background-color:#f4f1e8;cursor:default;opacity:.95}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:9px}
+  .row.single{grid-template-columns:1fr}
+
+  button{
+    border:0;
+    border-radius:12px;
+    padding:12px 12px;
+    font:900 .95rem/1.15 "Trebuchet MS",sans-serif;
+    cursor:pointer;
+    transition:.15s ease;
+  }
+  button:hover{transform:translateY(-1px)}
+  button:active{transform:translateY(0)}
+  button:disabled{cursor:default;opacity:.72;transform:none}
+
+  .primary{
+    width:100%;
+    background:linear-gradient(180deg,#79bd59,#4f963e);
+    color:#ffffff;
+    border:3px solid #3d7f31;
+    box-shadow:inset 0 2px 0 rgba(255,255,255,.30),0 4px 0 #326b29,0 8px 16px rgba(0,0,0,.16);
+    font-size:1.05rem;
+  }
+  .secondary{background:#66beb1;color:#092f45;border:2px solid #3b9d91}
+  .ghost{background:#b9d9ef;color:#173e5c;border:2px solid #7fb6d9}
+  .danger{background:#e8829f;color:#4b1530;border:2px solid #cf567c}
+
+  .stage{padding:16px;position:relative;overflow:hidden}
+  .wheel-status{
+    margin:0 auto 10px;
+    text-align:center;
+    font-family:"Arial Rounded MT Bold","Trebuchet MS",sans-serif;
+    font-size:clamp(1.15rem,2vw,1.55rem);
+    font-weight:1000;
+    color:var(--navy2);
+    letter-spacing:.02em;
+    text-transform:uppercase;
+  }
+
+  .wheel-wrap{position:relative;width:min(640px,100%);margin:0 auto;aspect-ratio:1/1;display:grid;place-items:center}
+  canvas{width:100%;height:100%;display:block;filter:drop-shadow(0 14px 18px rgba(0,0,0,.18))}
+  .pointer{
+    position:absolute;right:-2px;top:50%;transform:translateY(-50%);
+    width:0;height:0;
+    border-top:19px solid transparent;border-bottom:19px solid transparent;border-right:36px solid var(--navy);
+    filter:drop-shadow(0 3px 2px rgba(0,0,0,.22));z-index:4;
+  }
+  .hub{
+    position:absolute;width:92px;height:92px;border-radius:50%;
+    background:radial-gradient(circle at 35% 30%,#fff9a6,#f4cd31 58%,#d28d10 100%);
+    border:7px solid #fff;
+    box-shadow:0 7px 15px rgba(0,0,0,.24);
+    pointer-events:none;
+  }
+  .hub::after{
+    content:"A+";position:absolute;inset:0;display:grid;place-items:center;
+    color:#ca3f3c;font-family:"Arial Rounded MT Bold","Trebuchet MS",sans-serif;font-size:2.25rem;font-weight:1000;
+    transform:rotate(-6deg);text-shadow:0 2px 0 rgba(255,255,255,.7);
+  }
+
+  .winner-banner{
+    margin:12px auto 0;width:min(650px,100%);min-height:108px;
+    border:3px solid #c9d1d8;border-radius:15px;
+    background:
+      linear-gradient(90deg,transparent 0 36px,rgba(219,73,68,.16) 36px 39px,transparent 39px),
+      repeating-linear-gradient(0deg,#fffdf3 0 30px,#dce9ef 30px 31px);
+    display:grid;place-items:center;text-align:center;padding:14px 18px 14px 48px;position:relative;
+  }
+  .winner-banner::before{content:"★";position:absolute;left:13px;top:12px;color:#f1c82c;font-size:2rem;filter:drop-shadow(0 2px 0 #a97610)}
+  .winner-label{display:block;color:#e08417;text-transform:uppercase;letter-spacing:.12em;font-size:.8rem;font-weight:1000}
+  .winner-name{display:block;margin-top:2px;font-family:"Arial Rounded MT Bold","Trebuchet MS",sans-serif;font-size:clamp(2rem,5vw,3.6rem);font-weight:1000;color:#173a57;text-transform:uppercase;text-shadow:1px 1px 0 #fff}
+  .hint{color:#597085;font-size:.92rem;font-weight:900}
+
+  .winner-banner.star-student{
+    border-color:#e3bd28;
+    box-shadow:0 0 0 4px rgba(246,211,74,.16),0 8px 18px rgba(0,0,0,.09);
+  }
+
+  .bus-lane{height:0;margin:0;position:static;border:0;overflow:visible}
+  .school-bus{
+    position:fixed;left:0;top:0;width:106px;height:30px;
+    z-index:1000;visibility:hidden;pointer-events:none;will-change:left,top,transform;
+    background:#f1c72b;border:3px solid #283b4a;border-radius:7px 8px 4px 4px;
+    box-shadow:inset 0 -5px 0 #df9d16;
+  }
+  .school-bus::before{
+    content:"";position:absolute;left:8px;top:4px;width:57px;height:10px;
+    background:repeating-linear-gradient(90deg,#bfe0ed 0 12px,#293b49 12px 15px);
+    border:2px solid #293b49;border-radius:2px;
+  }
+  .school-bus::after{
+    content:"SCHOOL BUS";position:absolute;left:11px;bottom:4px;font-size:7px;font-weight:1000;color:#263845;letter-spacing:.05em;
+  }
+  .bus-front{position:absolute;right:-9px;bottom:-3px;width:19px;height:25px;background:#f1c72b;border:3px solid #283b4a;border-left:0;border-radius:0 7px 5px 0}
+  .wheel-a,.wheel-b{position:absolute;bottom:-9px;width:14px;height:14px;border-radius:50%;background:#263844;border:3px solid #101a22}
+  .wheel-a{left:14px}.wheel-b{right:11px}
+  .winner-target{
+    display:block;min-height:39px;margin:0 0 7px;padding:8px 10px 8px 38px;
+    border:2px dashed #e2b62c;border-radius:8px;background:#fff9d9;color:#9b7a12;font-weight:1000;
+    position:relative;opacity:.88;
+  }
+  .winner-target::before{content:"★";position:absolute;left:11px;top:6px;color:#edc52c;font-size:1rem}
+  .winner-target.bump{animation:winnerBump .22s ease-out}
+  @keyframes winnerBump{0%{transform:translateX(0)}45%{transform:translateX(9px)}100%{transform:translateX(0)}}
+  .winner-chip.reveal{animation:winnerReveal .28s ease-out}
+  @keyframes winnerReveal{0%{transform:scale(.94);opacity:.2}65%{transform:scale(1.025)}100%{transform:scale(1);opacity:1}}
+
+  .winners-side{margin-top:0;padding:15px 13px;max-height:760px;overflow:hidden;position:sticky;top:16px}
+  .winners-side::before{content:"";display:block;height:8px;margin:-4px 0 10px;background:repeating-linear-gradient(90deg,var(--red) 0 22px,var(--yellow) 22px 44px,var(--green) 44px 66px,var(--teal) 66px 88px,var(--blue) 88px 110px,var(--purple) 110px 132px);border-radius:7px}
+  .winners-side h2{text-align:center;font-size:1.08rem}
+  .winners-side .winner-list{display:block;margin-top:8px;max-height:680px;overflow-y:auto;padding-right:4px}
+  .winner-chip{
+    display:block;position:relative;min-height:0;margin:0 0 7px;padding:8px 10px 8px 38px;text-align:left;
+    border:2px solid #cad5dc;border-radius:8px;background:#fffef6;font-weight:1000;color:#27445b;
+  }
+  .winner-chip::before{content:"★";position:absolute;left:11px;top:6px;color:#edc52c;font-size:1rem;text-shadow:0 1px 0 #9b7412}
+  .winner-chip > div{display:flex;align-items:center;gap:7px}
+  .winner-chip span{display:inline-block;min-width:28px;margin:0;color:#de6f1f;font-weight:1000}
+
+  .drawing-actions{margin-top:14px;padding-top:13px;border-top:2px dashed #d2c5a8}
+  .drawing-actions button{width:100%;margin-top:8px}
+  .finish-btn{background:linear-gradient(180deg,#f2a23a,#d77c15);color:#fff;border:2px solid #a85d0c;box-shadow:0 4px 0 #9a550c}
+  .copy-btn{background:linear-gradient(180deg,#2f73a8,#235a84);color:#fff;border:2px solid #194564;box-shadow:0 4px 0 #173d59}
+  .reopen-btn{background:#f5eddc;color:#24425b;border:2px solid #b8aa8d}
+  .drawing-summary{margin-top:8px;text-align:center;font-weight:900;color:#35536b;font-size:.9rem}
+  .hidden{display:none !important}
+  textarea[readonly]{background:#ece8dc;color:#4a5b67;cursor:not-allowed}
+  .empty{color:var(--muted);text-align:center;padding:12px 6px;font-weight:800}
+  .class-dismissed{margin:11px 0 0;padding:11px 12px;text-align:center;font-family:"Arial Rounded MT Bold","Trebuchet MS",sans-serif;font-size:1.3rem;font-weight:1000;text-transform:uppercase;color:#fff;background:var(--navy2);border-radius:9px;border:3px solid #fff;outline:2px solid var(--navy2)}
+
+  @media(max-width:1080px){
+    .grid{grid-template-columns:300px minmax(0,1fr)}
+    .winners-side{grid-column:1/-1;position:static;max-height:none}
+    .winners-side .winner-list{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;max-height:none;overflow:visible;padding-right:0}
+    .winner-chip{margin:0;text-align:center;padding-left:10px}
+    .winner-chip::before{display:none}
+    .winner-chip > div{display:block}
+  }
+  @media(max-width:900px){
+    .grid{grid-template-columns:1fr}
+    .stage{order:1}.controls{order:2}.winners-side{order:3}
+    textarea{height:200px}
+    .winners-side .winner-list{grid-template-columns:repeat(2,minmax(0,1fr))}
+  }
+  @media(max-width:600px){
+    .wrap{width:100%;margin:0;padding:10px}
+    header{border-width:6px;padding:18px 14px}
+    .apple,.pencil{font-size:2.8rem}
+    .apple{left:4px}.pencil{right:8px}
+    .row{grid-template-columns:1fr}
+    .hub{width:70px;height:70px}.hub::after{font-size:1.7rem}
+    .pointer{border-top-width:14px;border-bottom-width:14px;border-right-width:28px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="apple" aria-hidden="true">🍎</div>
+    <div class="pencil" aria-hidden="true">✏️</div>
+    <span class="cfp">Central Florida Puzzlers</span>
+    <h1>Contest Winners Wheel</h1>
+    <div class="subhead">Back to School Puzzle Challenge</div>
+  </header>
+
+  <div class="grid">
+    <section class="panel controls">
+      <h2>Students in the Drawing</h2>
+      <label for="names">One name per line</label>
+      <textarea id="names" spellcheck="false">Alex
+Bailey
+Casey
+Drew
+Emerson
+Frankie
+Harper
+Jordan
+Morgan
+Riley
+Sam
+Taylor</textarea>
+      <div class="meta">
+        <span id="count">0 names</span>
+        <span id="winnerCount">0 winners</span>
+      </div>
+      <div class="validation-message" id="validationMessage" role="status" aria-live="polite"></div>
+      <button class="primary" id="spinBtn">PICK A WINNER!</button>
+      <div class="row single">
+        <button class="ghost" id="resetBtn">Start a New Drawing</button>
+      </div>
+    </section>
+
+    <section class="panel stage">
+      <div class="wheel-status" id="wheelStatus">Who's Getting Extra Credit?</div>
+      <div class="wheel-wrap">
+        <canvas id="wheel" width="900" height="900"></canvas>
+        <div class="pointer" aria-hidden="true"></div>
+        <div class="hub" aria-hidden="true"></div>
+      </div>
+
+      <div class="winner-banner" id="winnerBanner">
+        <div><span class="winner-label">Ready for Class</span></div>
+      </div>
+
+      <div class="bus-lane" aria-hidden="true">
+        <div class="school-bus" id="schoolBus">
+          <div class="bus-front"></div>
+          <div class="wheel-a"></div>
+          <div class="wheel-b"></div>
+        </div>
+      </div>
+    </section>
+
+    <aside class="panel winners winners-side">
+      <h2 id="roundupTitle">Class Winners</h2>
+      <div class="winner-list" id="winnerList">
+        <div class="empty">No winners yet.</div>
+      </div>
+      <div class="drawing-actions">
+        <button class="finish-btn hidden" id="finishBtn">FINISH DRAWING</button>
+        <button class="copy-btn hidden" id="copyBtn">COPY WINNERS</button>
+        <button class="reopen-btn hidden" id="reopenBtn">Reopen Drawing</button>
+        <div class="drawing-summary hidden" id="drawingSummary" role="status" aria-live="polite"></div>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<script>
+(() => {
+  const canvas = document.getElementById('wheel');
+  const ctx = canvas.getContext('2d');
+  const namesEl = document.getElementById('names');
+  const countEl = document.getElementById('count');
+  const winnerCountEl = document.getElementById('winnerCount');
+  const spinBtn = document.getElementById('spinBtn');
+  const resetBtn = document.getElementById('resetBtn');
+  const winnerBanner = document.getElementById('winnerBanner');
+  const winnerList = document.getElementById('winnerList');
+  const roundupTitle = document.getElementById('roundupTitle');
+  const wheelStatus = document.getElementById('wheelStatus');
+  const schoolBus = document.getElementById('schoolBus');
+  const validationMessage = document.getElementById('validationMessage');
+  const finishBtn = document.getElementById('finishBtn');
+  const copyBtn = document.getElementById('copyBtn');
+  const reopenBtn = document.getElementById('reopenBtn');
+  const drawingSummary = document.getElementById('drawingSummary');
+
+  const STORAGE_KEY = 'cfp-b2s3-drawing-state-v1';
+  const palette = ['#B17ABF','#F6D34A','#4FB6A7','#95C85F','#F28C22','#E87DA3','#63C2C2','#5595CC'];
+  let rotation = 0;
+  let spinning = false;
+  let drawingStarted = false;
+  let drawingFinished = false;
+  let winners = [];
+  let inFlightWinner = null;
+  let pendingRemovalIndex = null;
+  let highlightedIndex = null;
+  let highlightPulse = 0;
+  let originalNames = getNames();
+
+  function normalizeName(s){
+    return s.normalize('NFKC').replace(/[\u200B-\u200D\uFEFF]/g,'').trim().replace(/\s+/g,' ');
+  }
+
+  function getNames(){
+    return namesEl.value.split(/\n/).map(normalizeName).filter(Boolean);
+  }
+
+  function setNames(list){
+    namesEl.value = list.join('\n');
+    update();
+  }
+
+  // Uniform integer in [0, max) using cryptographic browser randomness.
+  // Two 32-bit values are combined into a 64-bit integer and rejection
+  // sampling removes modulo bias. This remains uniform for any realistic
+  // roster size and does not impose an arbitrary entrant limit.
+  function secureRandomInt(max){
+    if (!window.crypto || typeof window.crypto.getRandomValues !== 'function') {
+      throw new Error('Secure browser randomness is unavailable. Drawing stopped.');
+    }
+    if (!Number.isSafeInteger(max) || max <= 0) throw new Error('max must be a positive safe integer');
+    if (max === 1) return 0;
+    const maxBig = BigInt(max);
+    const RANGE = 1n << 64n;
+    const limit = RANGE - (RANGE % maxBig);
+    const arr = new Uint32Array(2);
+    let x;
+    do {
+      crypto.getRandomValues(arr);
+      x = (BigInt(arr[0]) << 32n) | BigInt(arr[1]);
+    } while (x >= limit);
+    return Number(x % maxBig);
+  }
+
+
+  function getDuplicateNames(names){
+    const seen = new Map();
+    const dupes = new Set();
+    names.forEach(name => {
+      const key = name.toLocaleLowerCase();
+      if (seen.has(key)) dupes.add(name);
+      else seen.set(key, name);
+    });
+    return [...dupes];
+  }
+
+  function validateRoster(){
+    const names = getNames();
+    const dupes = getDuplicateNames(names);
+    let message = '';
+    let valid = true;
+    if (!window.crypto || typeof window.crypto.getRandomValues !== 'function'){
+      valid = false;
+      message = 'Secure browser randomness is unavailable. Do not run the drawing in this browser.';
+    } else if (!names.length){
+      valid = false;
+      message = 'Add at least one name before drawing.';
+    } else if (dupes.length){
+      valid = false;
+      const shown = dupes.slice(0,3).join(', ');
+      const extra = dupes.length > 3 ? ` +${dupes.length-3} more` : '';
+      message = `Duplicate name${dupes.length===1?'':'s'} found: ${shown}${extra}. Add an identifier so every entrant is unique.`;
+    } else if (!drawingStarted){
+      message = `${names.length} unique entrant${names.length===1?'':'s'} ready.`;
+    } else if (drawingFinished){
+      message = `Drawing finished • ${winners.length} final winner${winners.length===1?'':'s'}.`;
+    } else {
+      message = `Roster locked • ${remainingEntrants()} eligible.`;
+    }
+    validationMessage.textContent = message;
+    validationMessage.classList.toggle('ok', valid);
+    if (!drawingStarted && !spinning) spinBtn.disabled = !valid;
+    return valid;
+  }
+
+  function setRosterLocked(locked){
+    namesEl.readOnly = locked;
+  }
+
+  function drawWheel(){
+    const names=getNames();
+    const W=canvas.width,H=canvas.height,cx=W/2,cy=H/2;
+    const r=Math.min(W,H)*0.44;
+    ctx.clearRect(0,0,W,H);
+
+    if(!names.length){
+      ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);
+      ctx.fillStyle='#F5F0DF';ctx.fill();
+      ctx.lineWidth=14;ctx.strokeStyle='#173A57';ctx.stroke();
+      ctx.fillStyle='#597085';ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.font='900 34px Trebuchet MS';ctx.fillText('Add some students',cx,cy);
+      return;
+    }
+
+    const arc=(Math.PI*2)/names.length;
+    names.forEach((name,i)=>{
+      const start=rotation+i*arc,end=start+arc,isWinner=highlightedIndex===i;
+      ctx.save();
+      if(isWinner){
+        const glow=18+(highlightPulse*20);
+        ctx.shadowColor='rgba(255,210,45,.98)';
+        ctx.shadowBlur=glow;
+      }
+      ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r,start,end);ctx.closePath();
+      ctx.fillStyle=palette[i%palette.length];ctx.fill();
+      ctx.lineWidth=isWinner?11:(names.length>60?2:5);
+      ctx.strokeStyle=isWinner?'#FFD83D':'#FFFFFF';ctx.stroke();
+      ctx.restore();
+
+      // Full names are readable at lower counts. At higher counts, labels
+      // would overlap, so the wheel stays clean while the full roster remains
+      // visible in the left panel. This is only visual and never changes selection odds.
+      if (names.length <= 60){
+        ctx.save();ctx.translate(cx,cy);ctx.rotate(start+arc/2);
+        ctx.textAlign='right';ctx.textBaseline='middle';
+        const fontSize = names.length <= 30 ? Math.max(18,Math.min(34,340/names.length+18)) : 14;
+        ctx.font=`900 ${fontSize}px Trebuchet MS`;
+        ctx.fillStyle='#FFFFFF';
+        let shown=name;
+        const maxChars = names.length <= 30 ? 20 : 10;
+        if(shown.length>maxChars) shown=shown.slice(0,maxChars-1)+'…';
+        ctx.shadowColor='rgba(0,0,0,.35)';ctx.shadowBlur=3;
+        ctx.fillText(shown,r-27,0);ctx.restore();
+      }
+    });
+
+    ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);
+    ctx.lineWidth=15;ctx.strokeStyle='#173A57';ctx.stroke();
+    ctx.beginPath();ctx.arc(cx,cy,r-10,0,Math.PI*2);
+    ctx.lineWidth=4;ctx.strokeStyle='#FFFFFF';ctx.stroke();
+  }
+
+  function pulseWinnerWedge(index,onComplete){
+    highlightedIndex=index;
+    const start=performance.now(),duration=1500;
+    function pulse(now){
+      const t=Math.min(1,(now-start)/duration);
+      highlightPulse=(Math.sin(t*Math.PI*6)+1)/2;
+      drawWheel();
+      if(t<1) requestAnimationFrame(pulse);
+      else {
+        highlightPulse=.45;
+        drawWheel();
+        if(typeof onComplete==='function') onComplete();
+      }
+    }
+    requestAnimationFrame(pulse);
+  }
+
+  function remainingEntrants(){
+    return Math.max(0, getNames().length - (pendingRemovalIndex !== null ? 1 : 0));
+  }
+
+  function saveDrawingState(){
+    if (!drawingStarted){
+      localStorage.removeItem(STORAGE_KEY);
+      return;
+    }
+    const state = {
+      version:1,
+      savedAt:Date.now(),
+      drawingStarted,
+      drawingFinished,
+      winners:[...winners],
+      inFlightWinner,
+      currentNames:getNames(),
+      originalNames:[...originalNames],
+      pendingRemovalIndex,
+      highlightedIndex,
+      rotation
+    };
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e) {}
+  }
+
+  function clearSavedDrawing(){
+    try { localStorage.removeItem(STORAGE_KEY); } catch(e) {}
+  }
+
+  function isSafeSavedState(state){
+    if (!state || state.version !== 1 || state.drawingStarted !== true) return false;
+    if (!Array.isArray(state.winners) || !Array.isArray(state.currentNames) || !Array.isArray(state.originalNames)) return false;
+    if (![...state.winners,...state.currentNames,...state.originalNames].every(v => typeof v === 'string')) return false;
+    if (getDuplicateNames(state.originalNames).length) return false;
+    if (getDuplicateNames(state.winners).length) return false;
+    const originalSet = new Set(state.originalNames.map(n => n.toLocaleLowerCase()));
+    if (!state.winners.every(n => originalSet.has(n.toLocaleLowerCase()))) return false;
+    if (!state.currentNames.every(n => originalSet.has(n.toLocaleLowerCase()))) return false;
+    if (state.inFlightWinner !== null && state.inFlightWinner !== undefined){
+      if (typeof state.inFlightWinner !== 'string') return false;
+      if (!state.currentNames.some(n => n.toLocaleLowerCase() === state.inFlightWinner.toLocaleLowerCase())) return false;
+      if (state.winners.some(n => n.toLocaleLowerCase() === state.inFlightWinner.toLocaleLowerCase())) return false;
+    }
+    if (state.pendingRemovalIndex !== null && (!Number.isInteger(state.pendingRemovalIndex) || state.pendingRemovalIndex < 0 || state.pendingRemovalIndex >= state.currentNames.length)) return false;
+    return true;
+  }
+
+  function restoreSavedDrawingIfWanted(){
+    let state = null;
+    try { state = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null'); } catch(e) {}
+    if (!isSafeSavedState(state)){
+      clearSavedDrawing();
+      return false;
+    }
+    const status = state.drawingFinished ? 'finished' : 'in progress';
+    const resume = confirm(`A saved drawing is ${status} with ${state.winners.length} winner${state.winners.length===1?'':'s'}. Restore it?\n\nCancel starts fresh and discards the saved drawing.`);
+    if (!resume){
+      clearSavedDrawing();
+      return false;
+    }
+    drawingStarted = true;
+    drawingFinished = !!state.drawingFinished;
+    winners = [...state.winners];
+    originalNames = [...state.originalNames];
+    namesEl.value = state.currentNames.join('\n');
+    inFlightWinner = state.inFlightWinner || null;
+    pendingRemovalIndex = state.pendingRemovalIndex;
+    highlightedIndex = state.highlightedIndex;
+    rotation = Number.isFinite(state.rotation) ? state.rotation : 0;
+
+    // If the page closed after a secure winner was selected but before the
+    // animation completed, preserve that exact selection rather than rerolling.
+    if(inFlightWinner){
+      const currentNames=getNames();
+      const idx=currentNames.findIndex(n => n.toLocaleLowerCase()===inFlightWinner.toLocaleLowerCase());
+      if(idx>=0){
+        winners.push(inFlightWinner);
+        pendingRemovalIndex=idx;
+        highlightedIndex=idx;
+      }
+      inFlightWinner=null;
+    }
+
+    highlightPulse = highlightedIndex === null ? 0 : .45;
+    setRosterLocked(true);
+    saveDrawingState();
+    return true;
+  }
+
+  function updateDrawingActions(){
+    const hasWinners = winners.length > 0;
+    finishBtn.classList.toggle('hidden', !hasWinners || drawingFinished || spinning);
+    copyBtn.classList.toggle('hidden', !drawingFinished);
+    reopenBtn.classList.toggle('hidden', !drawingFinished || remainingEntrants() === 0);
+    drawingSummary.classList.toggle('hidden', !drawingFinished);
+    if (drawingFinished){
+      drawingSummary.textContent = `${winners.length} final winner${winners.length===1?'':'s'} • ${remainingEntrants()} not selected`;
+    }
+  }
+
+  function updateWinnerList(){
+    winnerList.innerHTML='';
+    roundupTitle.textContent='Class Winners';
+    if(!winners.length){
+      winnerList.innerHTML='<div class="empty">No winners yet.</div>';
+    } else {
+      winners.forEach((name,i)=>{
+        const div=document.createElement('div');
+        div.className='winner-chip';
+        div.innerHTML=`<div><span>${i+1}.</span>${escapeHtml(name)}</div>`;
+        winnerList.appendChild(div);
+      });
+      if(remainingEntrants()===0){
+        const finale=document.createElement('div');
+        finale.className='class-dismissed';
+        finale.textContent='CLASS DISMISSED!';
+        winnerList.appendChild(finale);
+      }
+    }
+    winnerCountEl.textContent=`${winners.length} winner${winners.length===1?'':'s'}`;
+    updateDrawingActions();
+  }
+
+  function escapeHtml(s){
+    return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]));
+  }
+
+  function update(){
+    const names=getNames();
+    const eligible = drawingStarted ? remainingEntrants() : names.length;
+    countEl.textContent = drawingStarted
+      ? `${eligible} eligible`
+      : `${names.length} name${names.length===1?'':'s'}`;
+    drawWheel();
+    updateWinnerList();
+    validateRoster();
+  }
+
+  function easeOutCubic(t){ return 1-Math.pow(1-t,3); }
+
+  // The bus is presentation only. Winner selection and persistence happen
+  // independently before any bus movement, so animation can never alter a result.
+  function busSize(){
+    const r=schoolBus.getBoundingClientRect();
+    return {w:r.width || 106,h:r.height || 30};
+  }
+
+  function setBusPosition(left,top){
+    schoolBus.style.left=`${Math.round(left)}px`;
+    schoolBus.style.top=`${Math.round(top)}px`;
+    schoolBus.style.visibility='visible';
+  }
+
+  function targetBusPosition(el){
+    const r=el.getBoundingClientRect();
+    const b=busSize();
+    // The bus faces right. Its front bumper protrudes about 9px beyond the
+    // bus body, so park it with that bumper just touching the winner row.
+    return {left:r.left-b.w-9, top:r.top+(r.height-b.h)/2};
+  }
+
+  function arrowBusPosition(){
+    const pointer=document.querySelector('.pointer');
+    const r=pointer.getBoundingClientRect();
+    const b=busSize();
+    // Home position: immediately to the right of the wheel pointer.
+    return {left:r.right+10, top:r.top+(r.height-b.h)/2};
+  }
+
+  function animateBusTo(pos,duration=700){
+    const r=schoolBus.getBoundingClientRect();
+    const startLeft=Number.isFinite(r.left)?r.left:pos.left;
+    const startTop=Number.isFinite(r.top)?r.top:pos.top;
+    schoolBus.style.visibility='visible';
+    if(!schoolBus.animate){ setBusPosition(pos.left,pos.top); return Promise.resolve(); }
+    const anim=schoolBus.animate([
+      {left:`${startLeft}px`,top:`${startTop}px`},
+      {left:`${pos.left}px`,top:`${pos.top}px`}
+    ],{duration,easing:'cubic-bezier(.35,.75,.25,1)',fill:'forwards'});
+    return anim.finished.catch(()=>{}).then(()=>{
+      anim.cancel();
+      setBusPosition(pos.left,pos.top);
+    });
+  }
+
+  function makeWinnerTarget(number){
+    const old=winnerList.querySelector('.winner-target');
+    if(old) old.remove();
+    const empty=winnerList.querySelector('.empty');
+    if(empty) empty.remove();
+    const div=document.createElement('div');
+    div.className='winner-target';
+    div.innerHTML=`<div><span>${number}.</span>&nbsp; Next winner</div>`;
+    winnerList.appendChild(div);
+    winnerList.scrollTop=winnerList.scrollHeight;
+    return div;
+  }
+
+  function parkBusAtArrow(animate=false){
+    const park=()=>{
+      const pos=arrowBusPosition();
+      return animate ? animateBusTo(pos,520) : (setBusPosition(pos.left,pos.top), Promise.resolve());
+    };
+    return new Promise(resolve=>requestAnimationFrame(()=>{
+      Promise.resolve(park()).then(resolve);
+    }));
+  }
+
+  function parkBusForCurrentState(){
+    requestAnimationFrame(()=>{
+      const target=winnerList.querySelector('.winner-chip:last-of-type');
+      if(target){
+        const pos=targetBusPosition(target);
+        setBusPosition(pos.left,pos.top);
+      } else {
+        const pos=arrowBusPosition();
+        setBusPosition(pos.left,pos.top);
+      }
+    });
+  }
+
+  async function deliverWinnerToList(){
+    // Build the exact next slot, drive the front bumper to it, bump it, then reveal.
+    const target=makeWinnerTarget(winners.length);
+    await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+    const pos=targetBusPosition(target);
+    await animateBusTo(pos,820);
+    target.classList.add('bump');
+    await new Promise(resolve=>setTimeout(resolve,190));
+    updateWinnerList();
+    const chips=winnerList.querySelectorAll('.winner-chip');
+    const newest=chips[chips.length-1];
+    if(newest){
+      newest.classList.add('reveal');
+      winnerList.scrollTop=winnerList.scrollHeight;
+      const parked=targetBusPosition(newest);
+      setBusPosition(parked.left,parked.top);
+    }
+  }
+
+  function stopBus(){ /* bus intentionally remains parked */ }
+
+  function spin(){
+    if(spinning || drawingFinished) return;
+    if(!drawingStarted && !validateRoster()) return;
+
+    // Once the first drawing begins, freeze the roster for the entire round.
+    // This prevents accidental edits or shuffles from changing anyone's odds.
+    if(!drawingStarted){
+      drawingStarted=true;
+      originalNames=getNames();
+      setRosterLocked(true);
+      validationMessage.textContent=`Roster locked • ${getNames().length} eligible.`;
+      validationMessage.classList.add('ok');
+      saveDrawingState();
+    }
+
+    // Remove the previous winner only as the next spin begins. Because the
+    // roster is locked, this index cannot become stale or remove the wrong name.
+    if(pendingRemovalIndex!==null){
+      const currentNames=getNames();
+      if(pendingRemovalIndex>=0 && pendingRemovalIndex<currentNames.length){
+        currentNames.splice(pendingRemovalIndex,1);
+        namesEl.value=currentNames.join('\n');
+      }
+      pendingRemovalIndex=null;highlightedIndex=null;highlightPulse=0;
+      update();
+      saveDrawingState();
+    }
+
+    const names=getNames();
+    if(names.length===0){
+      spinBtn.disabled=true;
+      spinBtn.textContent='CLASS DISMISSED!';
+      wheelStatus.textContent='Class Dismissed!';
+      updateWinnerList();
+      return;
+    }
+
+    spinning=true;
+    spinBtn.disabled=true;
+    resetBtn.disabled=true;
+    spinBtn.textContent='THE BUS IS ROLLING…';
+    wheelStatus.textContent='The Bus Is Rolling…';
+    // Every spin begins with the bus returning to its home position beside
+    // the arrow. It waits there while the wheel spins, then delivers the winner.
+    parkBusAtArrow(true);
+
+    let winnerIndex, extraTurns;
+    try {
+      winnerIndex=secureRandomInt(names.length);
+      extraTurns=5+secureRandomInt(3);
+    } catch(err) {
+      spinning=false;
+      resetBtn.disabled=false;
+      stopBus();
+      validationMessage.textContent='ERROR: Secure random selection failed. No winner was selected. Reload in a modern browser before continuing.';
+      validationMessage.classList.remove('ok');
+      spinBtn.textContent=winners.length?'PICK ANOTHER WINNER!':'PICK A WINNER!';
+      spinBtn.disabled=true;
+      return;
+    }
+    inFlightWinner=names[winnerIndex];
+    saveDrawingState();
+
+    const arc=(Math.PI*2)/names.length;
+    const targetCenter=winnerIndex*arc+arc/2;
+    const current=((rotation%(Math.PI*2))+(Math.PI*2))%(Math.PI*2);
+    const desired=-targetCenter;
+    let delta=((desired-current)%(Math.PI*2)+(Math.PI*2))%(Math.PI*2);
+    delta+=extraTurns*Math.PI*2;
+
+    const startRot=rotation,endRot=rotation+delta,duration=3800,startTime=performance.now();
+    winnerBanner.classList.remove('star-student');
+    winnerBanner.innerHTML=`<div><span class="winner-label">On the Way</span><span class="winner-name">The Bus Is Rolling…</span><span class="hint">Next stop: a winner!</span></div>`;
+
+    function animate(now){
+      const t=Math.min(1,(now-startTime)/duration);
+      rotation=startRot+(endRot-startRot)*easeOutCubic(t);drawWheel();
+      if(t<1){
+        requestAnimationFrame(animate);
+      } else {
+        rotation=endRot;
+        const winner=inFlightWinner || names[winnerIndex];
+        winners.push(winner);
+        inFlightWinner=null;
+        pendingRemovalIndex=winnerIndex;
+        highlightedIndex=winnerIndex;
+        stopBus();
+        winnerBanner.classList.add('star-student');
+        wheelStatus.textContent='Extra Credit!';
+        winnerBanner.innerHTML=`<div><span class="winner-label">★ Extra Credit! ★</span><span class="winner-name">${escapeHtml(winner)}</span><span class="hint">Winner ${winners.length}</span></div>`;
+        validationMessage.textContent=`Roster locked • ${remainingEntrants()} eligible.`;
+        countEl.textContent=`${remainingEntrants()} eligible`;
+        // Persist the securely selected winner BEFORE any delivery animation.
+        // If the animation/browser is interrupted, restore will still show this winner.
+        saveDrawingState();
+
+        let pulseDone=false, deliveryDone=false;
+        const finishReveal=()=>{
+          if(!pulseDone || !deliveryDone) return;
+          spinning=false;
+          resetBtn.disabled=false;
+          if(remainingEntrants()===0){
+            drawingFinished=true;
+            spinBtn.textContent='DRAWING FINISHED';spinBtn.disabled=true;
+            wheelStatus.textContent='Class Dismissed!';
+          } else {
+            spinBtn.textContent='PICK ANOTHER WINNER!';spinBtn.disabled=false;
+          }
+          updateDrawingActions();
+          saveDrawingState();
+        };
+
+        pulseWinnerWedge(winnerIndex,()=>{ pulseDone=true; finishReveal(); });
+        deliverWinnerToList().then(()=>{ deliveryDone=true; finishReveal(); });
+      }
+    }
+    requestAnimationFrame(animate);
+  }
+
+  namesEl.addEventListener('input',()=>{
+    if(!drawingStarted) originalNames=getNames();
+    update();
+  });
+  spinBtn.addEventListener('click',spin);
+  finishBtn.addEventListener('click',()=>{
+    if(spinning || drawingFinished || !winners.length) return;
+    const remaining = remainingEntrants();
+    const ok = confirm(`Finish this drawing with ${winners.length} winner${winners.length===1?'':'s'}?\n\n${remaining} entrant${remaining===1?'':'s'} will remain unselected. No more winners can be drawn unless you reopen the drawing.`);
+    if(!ok) return;
+    drawingFinished=true;
+    spinBtn.disabled=true;
+    spinBtn.textContent='DRAWING FINISHED';
+    wheelStatus.textContent='Class Dismissed!';
+    validationMessage.textContent=`Drawing finished • ${winners.length} final winner${winners.length===1?'':'s'}.`;
+    validationMessage.classList.add('ok');
+    updateDrawingActions();
+    saveDrawingState();
+  });
+
+  copyBtn.addEventListener('click', async()=>{
+    if(!drawingFinished || !winners.length) return;
+    const text = winners.map((name,i)=>`${i+1}. ${name}`).join('\n');
+    const originalText = copyBtn.textContent;
+    let copied=false;
+    try {
+      await navigator.clipboard.writeText(text);
+      copied=true;
+    } catch(e) {
+      const temp=document.createElement('textarea');
+      temp.value=text;temp.setAttribute('readonly','');
+      temp.style.position='fixed';temp.style.opacity='0';
+      document.body.appendChild(temp);temp.select();
+      try { copied=document.execCommand('copy'); } catch(err) {}
+      temp.remove();
+    }
+    copyBtn.textContent = copied ? `✓ ${winners.length} WINNER${winners.length===1?'':'S'} COPIED` : 'COPY FAILED — TRY AGAIN';
+    setTimeout(()=>{ copyBtn.textContent=originalText; },2200);
+  });
+
+  reopenBtn.addEventListener('click',()=>{
+    if(spinning || !drawingFinished || remainingEntrants()===0) return;
+    const ok = confirm(`Reopen this drawing?\n\nAll ${winners.length} existing winner${winners.length===1?'':'s'} will stay exactly as drawn, and additional winners can then be selected.`);
+    if(!ok) return;
+    drawingFinished=false;
+    wheelStatus.textContent="Who's Getting Extra Credit?";
+    validationMessage.textContent=`Roster locked • ${remainingEntrants()} eligible.`;
+    validationMessage.classList.add('ok');
+    spinBtn.disabled=false;
+    spinBtn.textContent='PICK ANOTHER WINNER!';
+    updateDrawingActions();
+    saveDrawingState();
+  });
+
+  resetBtn.addEventListener('click',()=>{
+    if(spinning) return;
+    if(winners.length){
+      const ok = confirm(`START A NEW DRAWING?\n\nThis will permanently erase all ${winners.length} current winner${winners.length===1?'':'s'} and restore the original entrant list. This cannot be undone.`);
+      if(!ok) return;
+    }
+    winners=[];inFlightWinner=null;pendingRemovalIndex=null;highlightedIndex=null;highlightPulse=0;
+    drawingStarted=false;drawingFinished=false;
+    setRosterLocked(false);
+    spinBtn.disabled=false;spinBtn.textContent='PICK A WINNER!';
+    wheelStatus.textContent="Who's Getting Extra Credit?";
+    winnerBanner.classList.remove('star-student');
+    if(originalNames.length) setNames(originalNames);
+    winnerBanner.innerHTML='<div><span class="winner-label">Ready for Class</span></div>';
+    clearSavedDrawing();
+    update();
+    parkBusForCurrentState();
+  });
+
+
+
+  // Protect an in-progress live drawing from an accidental refresh/close.
+  window.addEventListener('beforeunload', (event) => {
+    if (drawingStarted && !drawingFinished) {
+      event.preventDefault();
+      event.returnValue = '';
+    }
+  });
+
+  const restored = restoreSavedDrawingIfWanted();
+  if(restored){
+    const lastWinner=winners[winners.length-1];
+    if(lastWinner){
+      winnerBanner.classList.add('star-student');
+      winnerBanner.innerHTML=`<div><span class="winner-label">★ Extra Credit! ★</span><span class="winner-name">${escapeHtml(lastWinner)}</span><span class="hint">Winner ${winners.length}</span></div>`;
+    }
+    if(drawingFinished || remainingEntrants()===0){
+      drawingFinished=true;
+      spinBtn.disabled=true;
+      spinBtn.textContent='DRAWING FINISHED';
+      wheelStatus.textContent='Class Dismissed!';
+    } else {
+      spinBtn.disabled=false;
+      spinBtn.textContent='PICK ANOTHER WINNER!';
+      wheelStatus.textContent=lastWinner?'Extra Credit!':"Who's Getting Extra Credit?";
+    }
+    saveDrawingState();
+  }
+  update();
+  parkBusForCurrentState();
+  window.addEventListener('resize',()=>{ if(!spinning) parkBusForCurrentState(); });
+})();
+</script>
+</body>
+</html>
