@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Deer Creek Village Community Garage Sale — Fall 2026</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+*{box-sizing:border-box}html,body,#map{height:100%;width:100%;margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}#map{position:fixed;inset:0;background:#eaf0e8}.title{position:fixed;top:max(12px,env(safe-area-inset-top));left:50%;transform:translateX(-50%);z-index:700;text-align:center;background:#fffffff2;border:1.5px solid #364638;border-radius:12px;box-shadow:0 3px 15px #0002;padding:10px 16px;width:min(350px,calc(100vw - 110px));pointer-events:none}.title strong{display:block;font-size:17px;color:#233b28}.title span{display:block;font-size:13px;color:#536053;margin-top:3px}.number-marker{width:35px;height:35px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:850;border:2px solid #fff;box-shadow:0 2px 6px #0006}.leaflet-div-icon{background:transparent;border:0}.leaflet-popup-content{font-size:15px;line-height:1.5;margin:12px}.leaflet-popup-content strong{font-size:17px}.maplink{display:inline-block;margin-top:9px;padding:9px 12px;border-radius:8px;background:#246a42;color:white!important;text-decoration:none;font-weight:750}.legend{position:fixed;left:12px;bottom:max(25px,env(safe-area-inset-bottom));z-index:650;background:#fffffff2;border:1px solid #9ba89d;border-radius:10px;padding:9px 12px;box-shadow:0 2px 10px #0002;font-size:13px}.legend div{display:flex;align-items:center;gap:7px;margin:4px 0}.dot{width:12px;height:12px;border-radius:50%;display:inline-block;border:1px solid #0005}.error{position:fixed;top:40%;left:10%;width:80%;z-index:900;background:#fff;padding:20px;border-radius:10px}
+
+/* Visit checklist: top-centered */
+.visit-button{position:fixed;left:50%;top:max(12px,env(safe-area-inset-top));transform:translateX(-50%);z-index:700;border:1px solid #234b31;background:#fff;color:#234b31;border-radius:12px;padding:15px 19px;font-size:17px;font-weight:800;box-shadow:0 3px 12px #0003;cursor:pointer}
+.visit-button:focus-visible,.close-list:focus-visible,.home-row:focus-visible{outline:3px solid #e9a600;outline-offset:2px}
+.legend{bottom:max(18px,env(safe-area-inset-bottom))}
+.scrim{position:fixed;inset:0;background:#0006;z-index:799;display:none}.scrim.open{display:block}
+.list-panel{position:fixed;z-index:800;right:0;bottom:0;top:0;width:min(430px,100vw);background:white;box-shadow:-4px 0 24px #0004;display:none;flex-direction:column;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
+.list-panel.open{display:flex}.list-head{padding:17px 18px 12px;border-bottom:1px solid #ddd;display:flex;align-items:start;gap:12px;justify-content:space-between}.list-head h2{font-size:21px;margin:0 0 5px}.list-head p{margin:0;color:#526053;font-size:14px}.close-list{border:0;background:#eee;border-radius:8px;font-size:25px;min-width:42px;min-height:42px;cursor:pointer}.list-scroll{overflow-y:auto;overscroll-behavior:contain;padding:12px 16px 24px;flex:1}.region-heading{font-size:16px;color:#25372b;margin:18px 0 7px;border-bottom:1px solid #ddd;padding-bottom:6px}.home-row{display:flex;gap:12px;align-items:center;padding:12px 8px;border-bottom:1px solid #eee;cursor:pointer;border-radius:6px}.home-row input{width:24px;height:24px;accent-color:#267043;flex:none;cursor:pointer}.home-row .home-text{flex:1;min-width:0}.home-row .home-label{font-weight:800;display:inline-block;margin-right:7px}.home-row .home-address{font-size:14px;color:#4c554d;display:block;margin-top:3px}.home-row.checked .home-text{opacity:.55}.home-row.checked .home-address{text-decoration:line-through}.list-footer{padding:12px 16px;border-top:1px solid #ddd;background:#f8faf8;font-size:13px;color:#526053}.map-marker-visited .number-marker{background:#222222!important;color:#CCCCCC}
+.popup-visit{display:flex;align-items:center;gap:10px;min-height:48px;margin-top:10px;padding:8px 4px;border-top:1px solid #ddd;cursor:pointer}.popup-visit input{width:24px;height:24px;margin:0;accent-color:#222222;flex:none;cursor:pointer}.popup-visit:focus-within{outline:3px solid #e9a600;outline-offset:2px;border-radius:4px}
+@media(max-width:600px){.list-panel{width:100vw}.visit-button{font-size:16px;white-space:nowrap;padding:14px 17px}.legend{bottom:max(18px,env(safe-area-inset-bottom));left:9px}}
+</style></head><body><div id="map"></div><div class="legend"><strong>Sale Regions</strong><div><span class="dot" style="background:#7941A5"></span>Central</div><div><span class="dot" style="background:#164C9A"></span>West</div><div><span class="dot" style="background:#216E39"></span>North</div><div><span class="dot" style="background:#222222"></span>Visited</div></div>
+<button id="visitButton" class="visit-button" type="button" aria-controls="visitPanel" aria-expanded="false">✓ See and Check the List <span id="visitCount">0/18</span></button><div id="listScrim" class="scrim"></div><section id="visitPanel" class="list-panel" role="dialog" aria-modal="true" aria-label="Garage sale home checklist" aria-hidden="true"><div class="list-head"><div><h2>Garage Sale Checklist</h2><p>North → Central → West · <strong id="progressText">0 of 18 visited</strong></p></div><button id="closeList" class="close-list" type="button" aria-label="Close checklist">×</button></div><div id="visitList" class="list-scroll"></div><div class="list-footer">Tap a checkbox to mark a visit. Your progress stays saved on this device and browser.</div></section><script>
+const homes=[{"label":"N1","region":"North","color":"#216E39","street":"5100 Deer Creek Dr","city":"Orlando","state":"FL","zip":"32821","lat":28.395691262975234,"lng":-81.43960608162854},{"label":"N2","region":"North","color":"#216E39","street":"5368 Desmond Ln","city":"Orlando","state":"FL","zip":"32821","lat":28.39512829071411,"lng":-81.44380914192685},{"label":"N3","region":"North","color":"#216E39","street":"11910 Desmar Ct","city":"Orlando","state":"FL","zip":"32821","lat":28.396051495110786,"lng":-81.44554537497267},{"label":"W1","region":"West","color":"#164C9A","street":"5520 Deepdale Dr","city":"Orlando","state":"FL","zip":"32821","lat":28.39064335305662,"lng":-81.44696190978364},{"label":"W2","region":"West","color":"#164C9A","street":"5942 Donnelly Circle","city":"Orlando","state":"FL","zip":"32821","lat":28.39212652073822,"lng":-81.45023597309925},{"label":"W3","region":"West","color":"#164C9A","street":"11909 Debary Ct","city":"Orlando","state":"FL","zip":"32821","lat":28.39282340675837,"lng":-81.44909197220328},{"label":"W4","region":"West","color":"#164C9A","street":"5513 Donnelly circle","city":"Orlando","state":"FL","zip":"32821","lat":28.393057016819963,"lng":-81.45012586083541},{"label":"W5","region":"West","color":"#164C9A","street":"5542 Donnelly Circle","city":"Orlando","state":"FL","zip":"32821","lat":28.394025138714117,"lng":-81.45060504531787},{"label":"W6","region":"West","color":"#164C9A","street":"11844 Daneswood Ct","city":"Orlando","state":"FL","zip":"32821","lat":28.394214000140007,"lng":-81.45066268967082},{"label":"W7","region":"West","color":"#164C9A","street":"11807 Daneswood","city":"Orlando","state":"FL","zip":"32821","lat":28.39496563246608,"lng":-81.44976417632134},{"label":"W8","region":"West","color":"#164C9A","street":"5578 Donnelly Circle","city":"Orlando","state":"FL","zip":"32821","lat":28.39395166910091,"lng":-81.448957918747},{"label":"C1","region":"Central","color":"#7941A5","street":"5367 Deer Creek Dr","city":"Orlando","state":"FL","zip":"32821","lat":28.39101212871735,"lng":-81.44204611665788},{"label":"C2","region":"Central","color":"#7941A5","street":"12238 Dickenson Ln","city":"Orlando","state":"FL","zip":"32821","lat":28.39155853871354,"lng":-81.4428590330127},{"label":"C3","region":"Central","color":"#7941A5","street":"5356 Dorrington Ln","city":"Orlando","state":"FL","zip":"32821","lat":28.393019649783575,"lng":-81.4445722111266},{"label":"C4","region":"Central","color":"#7941A5","street":"5331 Dorrington Ln","city":"Orlando","state":"FL","zip":"32821","lat":28.39322307618053,"lng":-81.4437115529771},{"label":"C5","region":"Central","color":"#7941A5","street":"5226 Dorrington Ln","city":"Orlando","state":"FL","zip":"32821","lat":28.39324937339568,"lng":-81.44194600052924},{"label":"C6","region":"Central","color":"#7941A5","street":"5118 Dorrington","city":"Orlando","state":"FL","zip":"32821","lat":28.393996276821476,"lng":-81.44059797432887},{"label":"C7","region":"Central","color":"#7941A5","street":"5007 Demott Ct","city":"Orlando","state":"FL","zip":"32821","lat":28.39433991387712,"lng":-81.43805626363327}];
+function esc(v){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function destination(h){return `${h.street}, ${h.city}, ${h.state} ${h.zip}`;}
+function mapUrl(h){const a=encodeURIComponent(destination(h));return /iPhone|iPad|iPod|Macintosh/i.test(navigator.userAgent)?`https://maps.apple.com/?q=${a}`:`https://www.google.com/maps/search/?api=1&query=${a}`;}
+if(typeof L==='undefined'){document.body.insertAdjacentHTML('beforeend','<div class="error">Map library could not load. Check your internet connection and reload.</div>');}
+else {
+ window.saleMap=L.map('map',{zoomControl:true});
+ const map=window.saleMap;
+ window.saleMarkers=new Map();
+ L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'}).addTo(map);
+ const bounds=[];
+  const markerByAddress=new Map();
+ for(const h of homes){
+  const icon=L.divIcon({className:'leaflet-div-icon',html:`<div class="number-marker" style="background:${h.color}">${esc(h.label)}</div>`,iconSize:[35,35],iconAnchor:[17,17],popupAnchor:[0,-17]});
+  const marker=L.marker([h.lat,h.lng],{icon}).addTo(map).bindPopup(`<strong>Sale ${esc(h.label)}</strong><br><span style="color:${h.color};font-weight:750">${esc(h.region)}</span><br>${esc(destination(h))}<br><a class="maplink" target="_blank" rel="noopener" href="${mapUrl(h)}">Open in Maps</a><label class="popup-visit"><input type="checkbox" data-visit-key="${esc(destination(h).toLowerCase())}" aria-label="Visited ${esc(h.label)}, ${esc(destination(h))}"><span>Mark as Visited</span></label>`);
+  markerByAddress.set(destination(h).toLowerCase(),marker);
+  window.saleMarkers.set(destination(h).toLowerCase(),marker);
+  bounds.push([h.lat,h.lng]);
+ }
+ if(bounds.length)map.fitBounds(bounds,{paddingTopLeft:[45,85],paddingBottomRight:[45,55],maxZoom:17});
+ window.addEventListener('resize',()=>map.invalidateSize());
+}
+</script>
+<script>
+/* Checklist works independently of the map library. Each address is its own key. */
+(function(){
+ 'use strict';
+ const button=document.getElementById('visitButton');
+ const panel=document.getElementById('visitPanel');
+ const scrim=document.getElementById('listScrim');
+ const close=document.getElementById('closeList');
+ const list=document.getElementById('visitList');
+ const count=document.getElementById('visitCount');
+ const progress=document.getElementById('progressText');
+ const storageKey='dcvGarageSale2026VisitedV1';
+ let saved=Object.create(null);
+ const key=h=>destination(h).toLowerCase();
+ const validKeys=new Set(homes.map(key));
+ const footer=document.querySelector('.list-footer');
+ function storageUnavailable(){footer.textContent='Tap a checkbox to mark a visit. Saving is unavailable in this browser; progress lasts until you leave or reload this page.';}
+ try {
+   const parsed=JSON.parse(localStorage.getItem(storageKey)||'{}');
+   if(parsed && typeof parsed==='object' && !Array.isArray(parsed)) {
+     for(const address of validKeys) if(parsed[address]===true) saved[address]=true;
+   }
+ } catch(e) { /* Keep working even when storage is blocked or data is invalid. */ }
+ function persist(){
+   try{localStorage.setItem(storageKey,JSON.stringify(saved));}
+   catch(e){storageUnavailable();}
+ }
+ function setVisited(address,checked){
+   if(!validKeys.has(address))return;
+   if(checked)saved[address]=true;else delete saved[address];
+   persist();update();
+ }
+ function update(){
+   const visited=homes.filter(h=>saved[key(h)]).length;
+   count.textContent=visited+'/'+homes.length;
+   progress.textContent=visited+' of '+homes.length+' visited';
+   document.querySelectorAll('.home-row').forEach(row=>{
+     const checked=!!saved[row.dataset.key];
+     row.classList.toggle('checked',checked);
+     row.querySelector('input').checked=checked;
+   });
+   document.querySelectorAll('.popup-visit input[data-visit-key]').forEach(input=>{
+     const checked=saved[input.dataset.visitKey]===true;
+     input.checked=checked;
+     input.nextElementSibling.textContent=checked?'Visited':'Mark as Visited';
+   });
+   if(window.saleMarkers){homes.forEach(h=>{
+     const marker=window.saleMarkers.get(key(h));
+     if(marker && marker.getElement()) marker.getElement().classList.toggle('map-marker-visited',!!saved[key(h)]);
+   });}
+ }
+ const regions=['North','Central','West'];
+ for(const region of regions){
+   const heading=document.createElement('h3');heading.className='region-heading';heading.textContent=region;
+   list.appendChild(heading);
+   homes.filter(h=>h.region===region).sort((a,b)=>a.label.localeCompare(b.label,undefined,{numeric:true}) || a.street.localeCompare(b.street)).forEach(h=>{
+     const row=document.createElement('label');row.className='home-row';row.dataset.key=key(h);
+     const input=document.createElement('input');input.type='checkbox';input.setAttribute('aria-label','Visited '+h.label+', '+destination(h));
+     const info=document.createElement('span');info.className='home-text';
+     const badge=document.createElement('span');badge.className='home-label';badge.textContent=h.label;badge.style.color=h.color;
+     const addr=document.createElement('span');addr.className='home-address';addr.textContent=destination(h);
+     info.append(badge,addr);row.append(input,info);list.appendChild(row);
+     input.addEventListener('change',()=>setVisited(key(h),input.checked));
+   });
+ }
+ function open(){panel.classList.add('open');scrim.classList.add('open');panel.setAttribute('aria-hidden','false');button.setAttribute('aria-expanded','true');document.body.style.overflow='hidden';close.focus();}
+ function shut(){panel.classList.remove('open');scrim.classList.remove('open');panel.setAttribute('aria-hidden','true');button.setAttribute('aria-expanded','false');document.body.style.overflow='';button.focus();}
+ button.addEventListener('click',open);close.addEventListener('click',shut);scrim.addEventListener('click',shut);
+ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&panel.classList.contains('open'))shut();});
+ update();
+ document.addEventListener('change',event=>{
+   const input=event.target;
+   if(input instanceof HTMLInputElement && input.matches('.popup-visit input[data-visit-key]')) {
+     setVisited(input.dataset.visitKey,input.checked);
+   }
+ });
+ if(window.saleMap)window.saleMap.on('popupopen zoomend moveend',update);
+})();
+</script></body></html>
