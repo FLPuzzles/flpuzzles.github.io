@@ -1,0 +1,1081 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Florida Puzzles Fall Festival Frenzy - The Sheriff's Winners Wheel</title>
+<style>
+  :root{
+    --bg:#f3ead7;
+    --paper:#fffaf0;
+    --ink:#2f241b;
+    --muted:#746554;
+    --rust:#a94f2a;
+    --gold:#d99a2b;
+    --sage:#6f7f58;
+    --brown:#6b4630;
+    --cream:#f7e8c6;
+    --line:#d5c3a5;
+    --shadow:0 12px 32px rgba(65,42,26,.16);
+  }
+
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    min-height:100vh;
+    font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    color:var(--ink);
+    background:
+      radial-gradient(circle at 10% 10%, rgba(217,154,43,.12), transparent 25%),
+      radial-gradient(circle at 90% 20%, rgba(111,127,88,.10), transparent 24%),
+      linear-gradient(180deg,#efe2c8 0%,#f7f1e5 100%);
+  }
+
+  .wrap{
+    width:min(1200px, 96vw);
+    margin:0 auto;
+    padding:28px 0 36px;
+  }
+
+  header{
+    text-align:center;
+    margin-bottom:14px;
+  }
+
+  .kicker{
+    font-size:.8rem;
+    letter-spacing:.18em;
+    text-transform:uppercase;
+    font-weight:800;
+    color:var(--rust);
+  }
+
+  h1{
+    margin:6px 0 4px;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size:clamp(2rem,4.4vw,3.7rem);
+    line-height:1;
+  }
+
+  .subtitle{
+    color:var(--muted);
+    margin:8px auto 0;
+    max-width:760px;
+  }
+
+  .grid{
+    display:grid;
+    grid-template-columns: 360px minmax(0,1fr);
+    gap:22px;
+    align-items:start;
+  }
+
+  .panel{
+    background:rgba(255,250,240,.95);
+    border:1px solid var(--line);
+    border-radius:20px;
+    box-shadow:var(--shadow);
+  }
+
+  .controls{
+    padding:18px;
+  }
+
+  .controls h2,
+  .winners h2{
+    font-family:Georgia, "Times New Roman", serif;
+    margin:0 0 10px;
+    font-size:1.25rem;
+  }
+
+  label{
+    display:block;
+    font-weight:800;
+    margin-bottom:8px;
+  }
+
+  textarea{
+    width:100%;
+    height:270px;
+    resize:vertical;
+    border:1px solid #cdbb9d;
+    border-radius:14px;
+    background:#fffdf8;
+    padding:12px;
+    font:inherit;
+    line-height:1.45;
+    color:var(--ink);
+    outline:none;
+  }
+
+  textarea:focus{
+    border-color:var(--rust);
+    box-shadow:0 0 0 3px rgba(169,79,42,.10);
+  }
+
+  .meta{
+    display:flex;
+    justify-content:space-between;
+    color:var(--muted);
+    font-size:.86rem;
+    margin:8px 2px 12px;
+  }
+
+  .row{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+    margin-top:10px;
+  }
+
+  button{
+    border:0;
+    border-radius:14px;
+    padding:12px 14px;
+    font:inherit;
+    font-weight:900;
+    cursor:pointer;
+    transition:.15s ease;
+  }
+
+  button:hover{transform:translateY(-1px)}
+  button:active{transform:translateY(0)}
+
+  .primary{
+    width:100%;
+    background:linear-gradient(180deg,#b65b31,#93401f);
+    color:white;
+    font-size:1.08rem;
+    box-shadow:0 8px 18px rgba(169,79,42,.24);
+  }
+
+  .secondary{
+    background:#eadbbf;
+    color:var(--ink);
+  }
+
+  .ghost{
+    background:#f8f0df;
+    color:var(--brown);
+    border:1px solid #d9c6a6;
+  }
+
+  .danger{
+    background:#7d2d20;
+    color:white;
+  }
+
+  .option{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    margin-top:12px;
+    color:var(--muted);
+    font-size:.92rem;
+  }
+
+  .option input{
+    width:18px;
+    height:18px;
+    accent-color:var(--rust);
+  }
+
+  .stage{
+    padding:18px;
+    position:relative;
+  }
+
+  .wheel-wrap{
+    position:relative;
+    width:min(640px, 100%);
+    margin:0 auto;
+    aspect-ratio:1/1;
+    display:grid;
+    place-items:center;
+  }
+
+  canvas{
+    width:100%;
+    height:100%;
+    display:block;
+    filter: drop-shadow(0 12px 18px rgba(65,42,26,.18));
+  }
+
+  .pointer{
+    position:absolute;
+    right:-2px;
+    top:50%;
+    transform:translateY(-50%);
+    width:0;height:0;
+    border-top:18px solid transparent;
+    border-bottom:18px solid transparent;
+    border-left:0;
+    border-right:34px solid #3a2b20;
+    filter:drop-shadow(0 3px 2px rgba(0,0,0,.18));
+    z-index:4;
+  }
+
+  .hub{
+    position:absolute;
+    width:84px;
+    height:84px;
+    border-radius:50%;
+    background:radial-gradient(circle at 35% 30%,#f8d88c,#c07a20 65%,#6a401c 100%);
+    border:6px solid #fff4d8;
+    box-shadow:0 6px 14px rgba(0,0,0,.22);
+    pointer-events:none;
+  }
+
+  .winner-banner{
+    margin:12px auto 0;
+    width:min(650px,100%);
+    min-height:102px;
+    border:2px dashed #c89f62;
+    border-radius:18px;
+    background:#fff8e8;
+    display:grid;
+    place-items:center;
+    text-align:center;
+    padding:14px;
+  }
+
+  .winner-label{
+    display:block;
+    color:var(--rust);
+    text-transform:uppercase;
+    letter-spacing:.15em;
+    font-size:.76rem;
+    font-weight:900;
+  }
+
+  .winner-name{
+    display:block;
+    margin-top:4px;
+    font-family:Georgia, "Times New Roman", serif;
+    font-size:clamp(1.7rem,4vw,2.8rem);
+    font-weight:900;
+  }
+
+  .hint{
+    color:var(--muted);
+    font-size:.9rem;
+  }
+
+  .winners{
+    margin-top:18px;
+    padding:16px 18px 18px;
+  }
+
+  .winner-list{
+    display:grid;
+    grid-template-columns:repeat(5,minmax(0,1fr));
+    gap:10px;
+    margin-top:10px;
+  }
+
+  .winner-chip{
+    background:#fff8e8;
+    border:1px solid #d9bd8c;
+    border-radius:12px;
+    padding:10px 8px;
+    text-align:center;
+    font-weight:900;
+    min-height:48px;
+    display:grid;
+    place-items:center;
+  }
+
+  .winner-chip span{
+    display:block;
+    font-size:.72rem;
+    color:var(--rust);
+    margin-bottom:2px;
+  }
+
+  .empty{
+    color:var(--muted);
+    grid-column:1/-1;
+    text-align:center;
+    padding:10px;
+  }
+
+  @media (max-width:900px){
+    .grid{grid-template-columns:1fr}
+    .controls{order:2}
+    .stage{order:1}
+    textarea{height:200px}
+  }
+
+  @media (max-width:600px){
+    .wrap{padding-top:16px}
+    .winner-list{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .row{grid-template-columns:1fr}
+    .hub{width:66px;height:66px}
+    .pointer{
+      border-top-width:14px;
+      border-bottom-width:14px;
+      border-left-width:0;
+      border-right-width:28px;
+    }
+  }
+
+  .hub::after{
+    content:"★";
+    position:absolute;
+    inset:0;
+    display:grid;
+    place-items:center;
+    color:#6b3f18;
+    font-size:3rem;
+    line-height:1;
+    text-shadow:0 1px 0 rgba(255,244,216,.55);
+  }
+
+
+  /* Fall festival / western town board atmosphere */
+  body{
+    background:
+      radial-gradient(circle at 8% 12%, rgba(214,119,35,.28), transparent 18%),
+      radial-gradient(circle at 91% 15%, rgba(128,40,28,.22), transparent 20%),
+      radial-gradient(circle at 15% 88%, rgba(105,116,59,.18), transparent 20%),
+      linear-gradient(rgba(43,25,14,.10),rgba(43,25,14,.20)),
+      repeating-linear-gradient(
+        90deg,
+        #55321d 0 68px,
+        #704326 68px 74px,
+        #60381f 74px 145px,
+        #7b4b2b 145px 151px
+      );
+    background-attachment:fixed;
+  }
+
+  .wrap{
+    width:min(1220px,96vw);
+    margin:18px auto;
+    padding:22px;
+    position:relative;
+    background:
+      radial-gradient(circle at 4% 6%, rgba(211,113,30,.25), transparent 10%),
+      radial-gradient(circle at 96% 8%, rgba(151,49,29,.22), transparent 11%),
+      radial-gradient(circle at 4% 94%, rgba(112,121,61,.18), transparent 11%),
+      linear-gradient(rgba(255,255,255,.025),rgba(0,0,0,.04)),
+      repeating-linear-gradient(
+        0deg,
+        #704326 0 34px,
+        #5a331d 34px 39px,
+        #7c4b2a 39px 76px,
+        #4e2d1a 76px 81px
+      );
+    border:10px solid #382014;
+    border-radius:10px;
+    box-shadow:
+      inset 0 0 0 3px #9a6035,
+      inset 0 0 0 7px #2e190f,
+      0 18px 42px rgba(0,0,0,.46);
+  }
+
+  header{
+    padding:18px 22px;
+    background:
+      radial-gradient(circle at 18% 20%, rgba(130,72,31,.08), transparent 18%),
+      radial-gradient(circle at 82% 76%, rgba(130,72,31,.07), transparent 20%),
+      linear-gradient(180deg,#f0d7a5,#dfbd7f);
+    border:3px solid #60371f;
+    box-shadow:
+      inset 0 0 18px rgba(85,46,19,.20),
+      0 5px 0 rgba(45,25,14,.20);
+  }
+
+  .panel{
+    background:
+      radial-gradient(circle at 12% 10%, rgba(136,74,29,.06), transparent 18%),
+      linear-gradient(180deg,#f2dfb8,#e4c48c);
+    border:3px solid #63391f;
+    border-radius:4px;
+    box-shadow:
+      inset 0 0 18px rgba(87,47,19,.15),
+      0 8px 18px rgba(38,22,13,.28);
+  }
+
+  .controls h2,.winners h2{
+    color:#7d271d;
+    text-transform:uppercase;
+    letter-spacing:.045em;
+  }
+
+  textarea{
+    background:#f1d9a8;
+    border:2px solid #754624;
+  }
+
+  .winner-banner{
+    background:
+      radial-gradient(circle at 15% 20%,rgba(133,72,29,.06),transparent 20%),
+      #efd5a1;
+    border:3px solid #65391e;
+    border-radius:3px;
+  }
+
+  .winner-chip{
+    background:#efd3a0;
+    border:2px solid #80502b;
+    border-radius:3px;
+  }
+
+  .primary{
+    background:linear-gradient(180deg,#943329,#711f1a);
+    color:#f6ddb0;
+    border:2px solid #4b1814;
+  }
+
+  .secondary{
+    background:linear-gradient(180deg,#d7862f,#ad5921);
+    color:#26150d;
+  }
+
+  .ghost{
+    background:linear-gradient(180deg,#e8c88e,#cea665);
+    border:1px solid #79502d;
+  }
+
+  .danger{
+    background:linear-gradient(180deg,#7c2b21,#5d1c17);
+  }
+
+  @media(max-width:600px){
+    .wrap{width:100%;margin:0;border-width:5px;border-radius:0;padding:10px}
+  }
+
+
+  .row.single{
+    grid-template-columns:1fr;
+  }
+
+  .winner-banner.wanted{
+    position:relative;
+    background:
+      radial-gradient(circle at 18% 18%, rgba(122,68,28,.08), transparent 20%),
+      radial-gradient(circle at 82% 78%, rgba(122,68,28,.07), transparent 22%),
+      linear-gradient(180deg,#f2d8a2,#dfba76);
+    border:3px solid #6a3a1f;
+    box-shadow:
+      inset 0 0 18px rgba(75,40,16,.18),
+      0 6px 0 rgba(54,30,15,.16);
+  }
+
+  .winner-banner.wanted::before,
+  .winner-banner.wanted::after{
+    content:"★";
+    position:absolute;
+    top:10px;
+    color:#9d6615;
+    font-size:1rem;
+    text-shadow:0 1px 0 #f5ddb0;
+  }
+
+  .winner-banner.wanted::before{left:12px}
+  .winner-banner.wanted::after{right:12px}
+
+  .winner-banner.wanted .winner-label{
+    color:#6f211a;
+    font-size:.86rem;
+    letter-spacing:.12em;
+  }
+
+  .winner-banner.wanted .winner-name{
+    font-family:Impact, Haettenschweiler, "Arial Narrow Bold", "Arial Narrow", sans-serif;
+    text-transform:uppercase;
+    letter-spacing:.04em;
+    font-size:clamp(2.1rem,5vw,3.8rem);
+    color:#20140e;
+    text-shadow:1px 1px 0 #c47a36;
+  }
+
+  .winner-banner.wanted .hint{
+    font-weight:900;
+    color:#6a3a1f;
+    letter-spacing:.03em;
+  }
+
+  .winner-chip{
+    position:relative;
+  }
+
+  .winner-chip::before{
+    content:"★";
+    position:absolute;
+    top:4px;
+    right:6px;
+    font-size:.7rem;
+    color:#b37a1c;
+    opacity:.7;
+  }
+
+  .whole-posse{
+    margin:10px 0 0;
+    padding:12px 14px;
+    text-align:center;
+    font-family:Impact, Haettenschweiler, "Arial Narrow Bold", "Arial Narrow", sans-serif;
+    font-size:clamp(1.4rem,3vw,2rem);
+    letter-spacing:.05em;
+    text-transform:uppercase;
+    color:#f6ddb0;
+    background:linear-gradient(180deg,#7d2a20,#5e1c17);
+    border:3px solid #40130f;
+    box-shadow:0 4px 0 #32110d;
+  }
+
+
+  .grid{
+    grid-template-columns:320px minmax(0,1fr) 270px;
+    gap:18px;
+    align-items:start;
+  }
+
+  .winners-side{
+    margin-top:0;
+    padding:16px 14px;
+    max-height:760px;
+    overflow:hidden;
+    position:sticky;
+    top:16px;
+  }
+
+  .winners-side h2{
+    margin:0 0 10px;
+    font-size:1.02rem;
+    line-height:1.2;
+    text-align:center;
+  }
+
+  .winners-side .winner-list{
+    display:block;
+    margin-top:8px;
+    max-height:680px;
+    overflow-y:auto;
+    padding-right:4px;
+  }
+
+  .winners-side .winner-chip{
+    display:block;
+    min-height:0;
+    margin:0 0 7px;
+    padding:8px 10px;
+    text-align:left;
+    border-radius:3px;
+  }
+
+  .winners-side .winner-chip > div{
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+
+  .winners-side .winner-chip span{
+    display:inline-block;
+    min-width:28px;
+    margin:0;
+    color:#7d271d;
+    font-weight:900;
+  }
+
+  .winners-side .winner-chip::before{
+    display:none;
+  }
+
+  .winners-side .empty{
+    padding:12px 6px;
+  }
+
+  @media (max-width:1080px){
+    .grid{
+      grid-template-columns:300px minmax(0,1fr);
+    }
+
+    .winners-side{
+      grid-column:1 / -1;
+      position:static;
+      max-height:none;
+    }
+
+    .winners-side .winner-list{
+      display:grid;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+      gap:8px;
+      max-height:none;
+      overflow:visible;
+      padding-right:0;
+    }
+
+    .winners-side .winner-chip{
+      margin:0;
+      text-align:center;
+    }
+
+    .winners-side .winner-chip > div{
+      display:block;
+    }
+  }
+
+  @media (max-width:900px){
+    .grid{
+      grid-template-columns:1fr;
+    }
+
+    .stage{order:1}
+    .controls{order:2}
+    .winners-side{order:3}
+
+    .winners-side .winner-list{
+      grid-template-columns:repeat(2,minmax(0,1fr));
+    }
+  }
+
+
+  /* Main sheriff action button */
+  .primary{
+    background:linear-gradient(180deg,#6f7f45 0%,#536331 100%);
+    color:#fff3cf;
+    border:2px solid #3d4a24;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.18),
+      0 4px 0 #35401f,
+      0 7px 14px rgba(0,0,0,.22);
+  }
+
+  .primary:hover{
+    background:linear-gradient(180deg,#798b4d 0%,#5c6e37 100%);
+  }
+
+
+  .wheel-status{
+    margin:0 auto 10px;
+    text-align:center;
+    font-family:Georgia, "Times New Roman", serif;
+    font-size:clamp(1.15rem,2vw,1.5rem);
+    font-weight:900;
+    color:#7d271d;
+    letter-spacing:.02em;
+  }
+
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>
+      <span style="display:block;font-size:.52em;letter-spacing:.08em;text-transform:uppercase;color:#8b3f24;">Florida Puzzles Fall Festival Frenzy</span>
+      <span style="display:block;margin-top:.12em;">The Sheriff's Winners Wheel</span>
+    </h1>
+  </header>
+
+  <div class="grid">
+    <section class="panel controls">
+      <h2>Townsfolk in the Draw</h2>
+      <label for="names">One name per line</label>
+      <textarea id="names" spellcheck="false">Alex
+Bailey
+Casey
+Drew
+Emerson
+Frankie
+Harper
+Jordan
+Morgan
+Riley
+Sam
+Taylor</textarea>
+      <div class="meta">
+        <span id="count">0 names</span>
+        <span id="winnerCount">0 winners</span>
+      </div>
+
+      <button class="primary" id="spinBtn">ROUND UP A WINNER!</button>
+
+      <div class="row">
+        <button class="secondary" id="shuffleBtn">Shuffle the Posse</button>
+        <button class="ghost" id="resetBtn">Start a New Roundup</button>
+      </div>
+
+      <div class="row single">
+        <button class="danger" id="clearBtn">Clear the Posse</button>
+      </div>
+    </section>
+
+    <section class="panel stage">
+      <div class="wheel-status" id="wheelStatus">Who's the sheriff pickin' next?</div>
+      <div class="wheel-wrap">
+        <canvas id="wheel" width="900" height="900"></canvas>
+        <div class="pointer" aria-hidden="true"></div>
+        <div class="hub" aria-hidden="true"></div>
+      </div>
+
+      <div class="winner-banner" id="winnerBanner">
+        <div>
+          <span class="winner-label">Ready</span>
+        </div>
+      </div>
+    </section>
+
+    <aside class="panel winners winners-side">
+      <h2 id="roundupTitle">The Sheriff's Winners</h2>
+      <div class="winner-list" id="winnerList">
+        <div class="empty">No one rounded up yet.</div>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<script>
+(() => {
+  const canvas = document.getElementById('wheel');
+  const ctx = canvas.getContext('2d');
+  const namesEl = document.getElementById('names');
+  const countEl = document.getElementById('count');
+  const winnerCountEl = document.getElementById('winnerCount');
+  const spinBtn = document.getElementById('spinBtn');
+  const shuffleBtn = document.getElementById('shuffleBtn');
+  const resetBtn = document.getElementById('resetBtn');
+  const clearBtn = document.getElementById('clearBtn');
+  const winnerBanner = document.getElementById('winnerBanner');
+  const winnerList = document.getElementById('winnerList');
+  const roundupTitle = document.getElementById('roundupTitle');
+  const wheelStatus = document.getElementById('wheelStatus');
+
+  const palette = ['#A94F2A','#D99A2B','#6F7F58','#8A6A48','#C46B3B','#D7B46A','#7E8A5A','#B77B46'];
+  const MAX_WINNERS = 100;
+  let rotation = 0;
+  let spinning = false;
+  let winners = [];
+  let pendingRemovalIndex = null;
+  let highlightedIndex = null;
+  let highlightPulse = 0;
+  let originalNames = getNames();
+
+  function getNames(){
+    return namesEl.value
+      .split(/\n/)
+      .map(s => s.trim())
+      .filter(Boolean);
+  }
+
+  function setNames(list){
+    namesEl.value = list.join('\n');
+    update();
+  }
+
+  function secureRandomInt(max){
+    if (max <= 1) return 0;
+    const arr = new Uint32Array(1);
+    crypto.getRandomValues(arr);
+    return Math.floor((arr[0] / 4294967296) * max);
+  }
+
+  function shuffle(list){
+    const a = [...list];
+    for(let i=a.length-1;i>0;i--){
+      const j = secureRandomInt(i+1);
+      [a[i],a[j]]=[a[j],a[i]];
+    }
+    return a;
+  }
+
+  function drawWheel(){
+    const names = getNames();
+    const W = canvas.width;
+    const H = canvas.height;
+    const cx = W/2, cy = H/2;
+    const r = Math.min(W,H)*0.44;
+
+    ctx.clearRect(0,0,W,H);
+
+    if(!names.length){
+      ctx.beginPath();
+      ctx.arc(cx,cy,r,0,Math.PI*2);
+      ctx.fillStyle='#E9DCC5';
+      ctx.fill();
+      ctx.lineWidth=14;
+      ctx.strokeStyle='#6B4630';
+      ctx.stroke();
+
+      ctx.fillStyle='#6F6254';
+      ctx.textAlign='center';
+      ctx.textBaseline='middle';
+      ctx.font='700 34px system-ui';
+      ctx.fillText('Add some names',cx,cy);
+      return;
+    }
+
+    const arc = (Math.PI*2)/names.length;
+
+    names.forEach((name,i)=>{
+      const start = rotation + i*arc;
+      const end = start + arc;
+      const isWinner = highlightedIndex === i;
+
+      ctx.save();
+
+      if(isWinner){
+        const glow = 18 + (highlightPulse * 18);
+        ctx.shadowColor = 'rgba(255,190,45,.95)';
+        ctx.shadowBlur = glow;
+      }
+
+      ctx.beginPath();
+      ctx.moveTo(cx,cy);
+      ctx.arc(cx,cy,r,start,end);
+      ctx.closePath();
+      ctx.fillStyle=palette[i%palette.length];
+      ctx.fill();
+
+      ctx.lineWidth = isWinner ? 10 : 4;
+      ctx.strokeStyle = isWinner ? '#F2C14E' : '#fff4dd';
+      ctx.stroke();
+
+      ctx.restore();
+
+      ctx.save();
+      ctx.translate(cx,cy);
+      ctx.rotate(start + arc/2);
+      ctx.textAlign='right';
+      ctx.textBaseline='middle';
+
+      const fontSize = Math.max(18, Math.min(34, 340/names.length + 18));
+      ctx.font=`800 ${fontSize}px system-ui`;
+      ctx.fillStyle='#fffaf0';
+
+      let shown = name;
+      if(shown.length > 20) shown = shown.slice(0,18)+'…';
+
+      ctx.shadowColor='rgba(0,0,0,.28)';
+      ctx.shadowBlur=2;
+      ctx.fillText(shown, r-26, 0);
+      ctx.restore();
+    });
+
+    ctx.beginPath();
+    ctx.arc(cx,cy,r,0,Math.PI*2);
+    ctx.lineWidth=14;
+    ctx.strokeStyle='#5B3A27';
+    ctx.stroke();
+  }
+
+  function pulseWinnerWedge(index){
+    highlightedIndex = index;
+    const start = performance.now();
+    const duration = 1500; // ~3 pulses
+
+    function pulse(now){
+      const t = Math.min(1,(now-start)/duration);
+      highlightPulse = (Math.sin(t * Math.PI * 6) + 1) / 2;
+      drawWheel();
+
+      if(t < 1){
+        requestAnimationFrame(pulse);
+      } else {
+        highlightPulse = 0.45;
+        drawWheel();
+      }
+    }
+
+    requestAnimationFrame(pulse);
+  }
+
+  function updateWinnerList(){
+    winnerList.innerHTML='';
+    roundupTitle.textContent="The Sheriff's Winners";
+
+    if(!winners.length){
+      winnerList.innerHTML='<div class="empty">No one rounded up yet.</div>';
+    } else {
+      winners.forEach((name,i)=>{
+        const div=document.createElement('div');
+        div.className='winner-chip';
+        div.innerHTML=`<div><span>${i+1}.</span>${escapeHtml(name)}</div>`;
+        winnerList.appendChild(div);
+      });
+
+      if(winners.length >= MAX_WINNERS){
+        const finale=document.createElement('div');
+        finale.className='whole-posse';
+        finale.style.gridColumn='1 / -1';
+        finale.textContent="THAT'S THE WHOLE POSSE!";
+        winnerList.appendChild(finale);
+      }
+    }
+
+    winnerCountEl.textContent=`${winners.length} winner${winners.length===1?'':'s'}`;
+  }
+
+  function escapeHtml(s){
+    return s.replace(/[&<>"']/g,c=>({
+      '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'
+    }[c]));
+  }
+
+  function update(){
+    const names=getNames();
+    countEl.textContent=`${names.length} name${names.length===1?'':'s'}`;
+    drawWheel();
+    updateWinnerList();
+  }
+
+  function easeOutCubic(t){
+    return 1-Math.pow(1-t,3);
+  }
+
+  function spin(){
+    if(spinning) return;
+
+    if(winners.length >= MAX_WINNERS){
+      spinBtn.disabled = true;
+      spinBtn.textContent="THAT'S THE WHOLE POSSE!";
+      return;
+    }
+
+    // Keep the current winner on the wheel until the NEXT spin is clicked.
+    if(pendingRemovalIndex !== null){
+      const currentNames = getNames();
+      if(pendingRemovalIndex >= 0 && pendingRemovalIndex < currentNames.length){
+        currentNames.splice(pendingRemovalIndex, 1);
+        namesEl.value = currentNames.join('\n');
+      }
+      pendingRemovalIndex = null;
+      highlightedIndex = null;
+      highlightPulse = 0;
+      update();
+    }
+
+    const names=getNames();
+    if(names.length===0) return;
+
+    spinning=true;
+    spinBtn.disabled=true;
+    spinBtn.textContent="HOLD YER HORSES…";
+    wheelStatus.textContent="Hold yer horses…";
+
+    const winnerIndex=secureRandomInt(names.length);
+    const arc=(Math.PI*2)/names.length;
+
+    // Pointer is at angle 0 on the right side and points left INTO the wheel.
+    // Land the center of the selected wedge exactly under that pointer.
+    const targetCenter = winnerIndex*arc + arc/2;
+    const current = ((rotation%(Math.PI*2))+(Math.PI*2))%(Math.PI*2);
+    const desired = -targetCenter;
+    let delta = ((desired-current)%(Math.PI*2)+(Math.PI*2))%(Math.PI*2);
+    const extraTurns = 5 + secureRandomInt(3);
+    delta += extraTurns*Math.PI*2;
+
+    const startRot=rotation;
+    const endRot=rotation+delta;
+    const duration=3800;
+    const startTime=performance.now();
+
+    winnerBanner.classList.remove('wanted');
+    winnerBanner.innerHTML = `
+      <div>
+        <span class="winner-label">Drawing</span>
+        <span class="winner-name">Hold yer horses…</span>
+        <span class="hint">The sheriff's makin' his pick!</span>
+      </div>`;
+
+    function animate(now){
+      const t=Math.min(1,(now-startTime)/duration);
+      rotation=startRot+(endRot-startRot)*easeOutCubic(t);
+      drawWheel();
+
+      if(t<1){
+        requestAnimationFrame(animate);
+      }else{
+        rotation=endRot;
+
+        const winner=names[winnerIndex];
+        winners.push(winner);
+
+        // Keep the winner on the wheel until another spin begins.
+        pendingRemovalIndex = winnerIndex;
+        highlightedIndex = winnerIndex;
+
+        winnerBanner.classList.add('wanted');
+        wheelStatus.textContent="Well, look who we rounded up!";
+        winnerBanner.innerHTML=`
+          <div>
+            <span class="winner-name">${escapeHtml(winner)}</span>
+            <span class="hint">Winner ${winners.length}</span>
+          </div>`;
+
+        pulseWinnerWedge(winnerIndex);
+
+        spinning=false;
+        updateWinnerList();
+        countEl.textContent=`${getNames().length} name${getNames().length===1?'':'s'}`;
+
+        if(winners.length >= MAX_WINNERS){
+          spinBtn.textContent="THAT'S THE WHOLE POSSE!";
+          spinBtn.disabled=true;
+        } else {
+          spinBtn.textContent="ROUND UP ANOTHER WINNER!";
+          spinBtn.disabled=false;
+        }
+      }
+    }
+
+    requestAnimationFrame(animate);
+  }
+
+  namesEl.addEventListener('input',()=>{
+    if(winners.length===0) originalNames=getNames();
+    update();
+  });
+
+  spinBtn.addEventListener('click',spin);
+
+  shuffleBtn.addEventListener('click',()=>{
+    if(spinning) return;
+    setNames(shuffle(getNames()));
+  });
+
+  resetBtn.addEventListener('click',()=>{
+    if(spinning) return;
+    winners=[];
+    pendingRemovalIndex=null;
+    highlightedIndex=null;
+    highlightPulse=0;
+    spinBtn.disabled=false;
+    spinBtn.textContent="ROUND UP A WINNER!";
+    wheelStatus.textContent="Who's the sheriff pickin' next?";
+    winnerBanner.classList.remove('wanted');
+    if(originalNames.length) setNames(originalNames);
+    winnerBanner.innerHTML=`
+      <div>
+        <span class="winner-label">Ready</span>
+      </div>`;
+    update();
+  });
+
+  clearBtn.addEventListener('click',()=>{
+    if(spinning) return;
+    namesEl.value='';
+    winners=[];
+    pendingRemovalIndex=null;
+    highlightedIndex=null;
+    highlightPulse=0;
+    spinBtn.disabled=false;
+    spinBtn.textContent="ROUND UP A WINNER!";
+    wheelStatus.textContent="Who's the sheriff pickin' next?";
+    winnerBanner.classList.remove('wanted');
+    originalNames=[];
+    winnerBanner.innerHTML=`
+      <div>
+        <span class="winner-label">Ready</span>
+        <span class="winner-name">Round up some townsfolk to begin</span>
+      </div>`;
+    update();
+  });
+
+
+  update();
+})();
+</script>
+</body>
+</html>
